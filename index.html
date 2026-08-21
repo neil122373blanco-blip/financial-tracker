@@ -280,6 +280,69 @@
             </form>
         </div>
 
+                <!-- SALES FORM CARD -->
+        <div id="salesCard" class="card">
+            <h2>Record New Sale</h2>
+            
+            <!-- Customer Review Box (Live Total Display) -->
+            <div class="review-box">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">CUSTOMER REVIEW DISPLAY</div>
+                <div class="review-row">
+                    <span id="reviewItemDisplay">Item: (Not selected)</span>
+                    <span id="reviewPriceDisplay">₱0.00</span>
+                </div>
+                <div class="review-total">
+                    <span>Total Amount Due</span>
+                    <span id="reviewTotalDisplay">₱0.00</span>
+                </div>
+            </div>
+
+            <form id="salesForm">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label>Items (Configurable from Settings)</label>
+                    <select id="salesItem" required onchange="updateCustomerReview()">
+                        <option value="">Select Item</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Manual Price / Amount (₱)</label>
+                    <input type="number" step="0.01" id="salesAmount" placeholder="Enter amount for this item" required oninput="updateCustomerReview()">
+                </div>
+                <div class="form-group">
+                    <label>Mode of Payment</label>
+                    <select id="salesPaymentMethod" required>
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="salesPaymentStatus" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sales Invoice Number</label>
+                    <input type="text" id="salesInvoiceNo">
+                </div>
+                <div class="form-group">
+                    <label>Particulars</label>
+                    <input type="text" id="salesParticulars">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="salesNote" rows="2"></textarea>
+                </div>
+                <button type="submit">Submit Sale Entry</button>
+            </form>
+        </div>
+
         <!-- Expenses Form Card -->
         <div id="expensesCard" class="card hidden">
             <h2>Record New Expense</h2>
@@ -337,6 +400,23 @@
 
     let sessionToken = "";
     let currentUserRole = "";
+
+    // PASTE updateCustomerReview() RIGHT HERE:
+    function updateCustomerReview() {
+        const itemSelect = document.getElementById('salesItem');
+        const itemName = itemSelect.value ? itemSelect.value : "(Not selected)";
+        const amountVal = document.getElementById('salesAmount').value;
+        const formattedAmount = amountVal ? "₱" + Number(amountVal).toLocaleString('en-US', {minimumFractionDigits: 2}) : "₱0.00";
+
+        document.getElementById('reviewItemDisplay').innerText = "Item: " + itemName;
+        document.getElementById('reviewPriceDisplay').innerText = formattedAmount;
+        document.getElementById('reviewTotalDisplay').innerText = formattedAmount;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // ... rest of your existing script code ...
+    });
+</script>
 
     // Check if app is already installed/configured in localStorage
     window.addEventListener('DOMContentLoaded', () => {
