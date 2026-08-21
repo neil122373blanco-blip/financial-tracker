@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Tracker for Business</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* COLOR SYSTEM: 60% Crisp White, 30% Soft Black, 10% Deep Indigo */
+        :root {
+            --bg-color: #FFFFFF;
+            --text-color: #18181B;
+            --accent-color: #4F46E5;
+            --accent-hover: #4338CA;
+            --border-color: #E4E4E7;
+            --card-bg: #FAFAFA;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .business-meta {
+            font-size: 0.75rem;
+            color: #71717A;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #FFFFFF;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-top: 4px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .tab-switcher {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            background-color: #E4E4E7;
+            color: var(--text-color);
+            flex: 1;
+            padding: 8px;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: #FFFFFF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="displayBizName">Financial Tracker</h1>
+        <div class="business-meta" id="displayBizMeta">Setting up system...</div>
+    </header>
+
+    <!-- STEP 1: INITIAL APP INSTALLATION & SETUP -->
+    <section id="setupSection" class="card">
+        <h2>App Installation & Setup</h2>
+        <form id="setupForm">
+            <div class="form-group">
+                <label>App Owner Email</label>
+                <input type="email" id="ownerEmail" placeholder="neil122373blanco@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <label>6-Digit Installation Code</label>
+                <input type="password" id="installCode" maxlength="6" placeholder="******" required>
+            </div>
+            <div class="form-group">
+                <label>Mapped User Gmail</label>
+                <input type="email" id="mappedGmail" placeholder="user@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <label>Business Name</label>
+                <input type="text" id="bizName" placeholder="e.g. Habitat 3404 / Casa Delia" required>
+            </div>
+            <div class="form-group">
+                <label>Business Address</label>
+                <input type="text" id="bizAddress" placeholder="e.g. Maddela, Quirino" required>
+            </div>
+            <button type="submit">Complete Installation</button>
+        </form>
+    </section>
+
+    <!-- STEP 2: LOGIN PORTAL -->
+    <section id="loginSection" class="card hidden">
+        <h2>System Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Enter 4-Digit PIN (Management or Employee)</label>
+                <input type="password" id="loginPin" maxlength="4" placeholder="----" required>
+            </div>
+            <button type="submit">Access Portal</button>
+        </form>
+    </section>
+
+    <!-- STEP 3: MAIN APP PORTAL (MANAGEMENT & EMPLOYEE VIEWS) -->
+    <section id="appPortalSection" class="hidden">
+        
+        <!-- Management Running Totals Dashboard -->
+        <div id="managementDashboard" class="hidden">
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div style="font-size: 0.8rem; color: #71717A;">Today's Sales</div>
+                    <div class="metric-value" id="valSalesToday">₱0.00</div>
+                </div>
+                <div class="metric-box">
+                    <div style="font-size: 0.8rem; color: #71717A;">Today's Expenses</div>
+                    <div class="metric-value" id="valExpToday">₱0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portal Type Switcher -->
+        <div class="tab-switcher" id="portalSwitcher">
+            <button class="tab-btn active" onclick="switchPortalTab('sales')">Sales Entry</button>
+            <button class="tab-btn" id="btnExpTab" onclick="switchPortalTab('expenses')">Expenses Entry</button>
+        </div>
+
+        <!-- Sales Form Card -->
+        <div id="salesCard" class="card">
+            <h2>Record New Sale</h2>
+            <form id="salesForm">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label>Items</label>
+                    <select id="salesItem" required>
+                        <option value="">Select Item</option>
+                        <option value="Standard Room Booking">Standard Room Booking</option>
+                        <option value="Event Venue Rental">Event Venue Rental</option>
+                        <option value="Goods / Merchandise">Goods / Merchandise</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Total Amount (₱)</label>
+                    <input type="number" step="0.01" id="salesAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>Mode of Payment</label>
+                    <select id="salesPaymentMethod" required>
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="salesPaymentStatus" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sales Invoice Number</label>
+                    <input type="text" id="salesInvoiceNo">
+                </div>
+                <div class="form-group">
+                    <label>Particulars</label>
+                    <input type="text" id="salesParticulars">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="salesNote" rows="2"></textarea>
+                </div>
+                <button type="submit">Submit Sale Entry</button>
+            </form>
+        </div>
+
+        <!-- Expenses Form Card -->
+        <div id="expensesCard" class="card hidden">
+            <h2>Record New Expense</h2>
+            <form id="expensesForm">
+                <div class="form-group">
+                    <label>Provider / Supplier</label>
+                    <input type="text" id="expProvider" required>
+                </div>
+                <div class="form-group">
+                    <label>Items / Service</label>
+                    <select id="expItem" required>
+                        <option value="">Select Item/Service</option>
+                        <option value="Utilities (Electricity/Water)">Utilities (Electricity/Water)</option>
+                        <option value="Maintenance & Repairs">Maintenance & Repairs</option>
+                        <option value="Supplies & Inventory">Supplies & Inventory</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount (₱)</label>
+                    <input type="number" step="0.01" id="expAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="expPaymentMethod" required>
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="expPaymentStatus" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Particulars</label>
+                    <input type="text" id="expParticulars">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="expNote" rows="2"></textarea>
+                </div>
+                <button type="submit">Submit Expense Entry</button>
+            </form>
+        </div>
+
+    </section>
+</div>
+
+<script>
+    // PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE:
+    const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4keEb9u889czH77xPyqz4yfraPSHPRsYpwVSFJwtDQjc1potUE1-C9wevLfs/exec";
+
+    let sessionToken = "";
+    let currentUserRole = "";
+
+    // Check if app is already installed/configured in localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedBiz = localStorage.getItem('tracker_biz_name');
+        const savedAddr = localStorage.getItem('tracker_biz_addr');
+        
+        if (savedBiz && savedAddr) {
+            document.getElementById('displayBizName').innerText = savedBiz;
+            document.getElementById('displayBizMeta').innerText = savedAddr;
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+        }
+    });
+
+    // Handle Setup Form
+    document.getElementById('setupForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const ownerEmail = document.getElementById('ownerEmail').value.trim();
+        const installCode = document.getElementById('installCode').value.trim();
+        const bizName = document.getElementById('bizName').value.trim();
+        const bizAddress = document.getElementById('bizAddress').value.trim();
+
+        // Validate App Owner Email whitelist
+        if (ownerEmail !== "neil122373blanco@gmail.com" && ownerEmail !== "branpropertyrental@gmail.com") {
+            alert("Error: Link provided by unauthorized email. Access denied.");
+            return;
+        }
+
+        // Save local settings
+        localStorage.setItem('tracker_biz_name', bizName);
+        localStorage.setItem('tracker_biz_addr', bizAddress);
+
+        document.getElementById('displayBizName').innerText = bizName;
+        document.getElementById('displayBizMeta').innerText = bizAddress;
+
+        document.getElementById('setupSection').classList.add('hidden');
+        document.getElementById('loginSection').classList.remove('hidden');
+        alert("App successfully installed and configured!");
+    });
+
+    // Handle Login Form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = document.getElementById('loginPin').value.trim();
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "login", pin: pin })
+            });
+            const result = await response.json();
+
+            if (result.status === "success") {
+                sessionToken = result.token;
+                currentUserRole = result.role;
+
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('appPortalSection').classList.remove('hidden');
+
+                if (currentUserRole === "MANAGEMENT") {
+                    document.getElementById('managementDashboard').classList.remove('hidden');
+                    fetchMetrics();
+                } else {
+                    // Employee role restrictions: hide expenses tab completely
+                    document.getElementById('btnExpTab').classList.add('hidden');
+                }
+            } else {
+                alert("Login Failed: " + result.message);
+            }
+        } catch (err) {
+            alert("Network error connecting to backend: " + err);
+        }
+    });
+
+    // Fetch Daily Metrics for Management
+    async function fetchMetrics() {
+        if (currentUserRole !== "MANAGEMENT") return;
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "getMetrics", token: sessionToken })
+            });
+            const res = await response.json();
+            if (res.status === "success") {
+                document.getElementById('valSalesToday').innerText = "₱" + Number(res.salesToday).toLocaleString('en-US', {minimumFractionDigits: 2});
+                document.getElementById('valExpToday').innerText = "₱" + Number(res.expensesToday).toLocaleString('en-US', {minimumFractionDigits: 2});
+            }
+        } catch (e) {
+            console.error("Could not fetch metrics", e);
+        }
+    }
+
+    // Portal Tab Switcher
+    function switchPortalTab(tab) {
+        if (tab === 'sales') {
+            document.getElementById('salesCard').classList.remove('hidden');
+            document.getElementById('expensesCard').classList.add('hidden');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+        } else if (tab === 'expenses' && currentUserRole === "MANAGEMENT") {
+            document.getElementById('salesCard').classList.add('hidden');
+            document.getElementById('expensesCard').classList.remove('hidden');
+            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        }
+    }
+
+    // Submit Sales Entry
+    document.getElementById('salesForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            action: "submitSale",
+            user: currentUserRole,
+            clientName: document.getElementById('clientName').value,
+            items: document.getElementById('salesItem').value,
+            totalAmount: document.getElementById('salesAmount').value,
+            modeOfPayment: document.getElementById('salesPaymentMethod').value,
+            paymentStatus: document.getElementById('salesPaymentStatus').value,
+            salesInvoiceNo: document.getElementById('salesInvoiceNo').value,
+            particulars: document.getElementById('salesParticulars').value,
+            note: document.getElementById('salesNote').value
+        };
+
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.status === "success") {
+                alert("Sale successfully recorded to Financial Tracker!");
+                document.getElementById('salesForm').reset();
+                if (currentUserRole === "MANAGEMENT") fetchMetrics();
+            } else {
+                alert("Error recording sale: " + data.message);
+            }
+        } catch (err) {
+            alert("Submission error: " + err);
+        }
+    });
+
+    // Submit Expenses Entry
+    document.getElementById('expensesForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            action: "submitExpense",
+            provider: document.getElementById('expProvider').value,
+            items: document.getElementById('expItem').value,
+            amount: document.getElementById('expAmount').value,
+            paymentMethod: document.getElementById('expPaymentMethod').value,
+            paymentStatus: document.getElementById('expPaymentStatus').value,
+            particulars: document.getElementById('expParticulars').value,
+            note: document.getElementById('expNote').value
+        };
+
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stylesheet || 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.status === "success") {
+                alert("Expense successfully recorded!");
+                document.getElementById('expensesForm').reset();
+                if (currentUserRole === "MANAGEMENT") fetchMetrics();
+            } else {
+                alert("Error recording expense: " + data.message);
+            }
+        } catch (err) {
+            alert("Submission error: " + err);
+        }
+    });
+</script>
+</body>
+</html>
