@@ -13,6 +13,7 @@
             --border-color: #E4E4E7;
             --card-bg: #FAFAFA;
             --danger-color: #EF4444;
+            --success-color: #10B981;
         }
 
         * {
@@ -104,19 +105,19 @@
             background-color: var(--accent-hover);
         }
 
-        .secondary-btn {
-            background-color: #10B981;
-            margin-bottom: 10px;
+        .add-btn {
+            background-color: var(--success-color);
+            margin-bottom: 14px;
         }
-        .secondary-btn:hover {
+        .add-btn:hover {
             background-color: #059669;
         }
 
         .delete-btn {
             background-color: var(--danger-color);
             width: auto;
-            padding: 8px 12px;
-            font-size: 0.85rem;
+            padding: 10px 14px;
+            font-size: 0.9rem;
         }
         .delete-btn:hover {
             background-color: #DC2626;
@@ -221,11 +222,11 @@
             </div>
             <div class="form-group">
                 <label>Business Name</label>
-                <input type="text" id="bizName" placeholder="e.g. Neil's Barbers / Habitat 3404" required>
+                <input type="text" id="bizName" placeholder="e.g. Neil's Barbers" required>
             </div>
             <div class="form-group">
                 <label>Business Address</label>
-                <input type="text" id="bizAddress" placeholder="e.g. Poblacion Sur, Maddela, Quirino" required>
+                <input type="text" id="bizAddress" placeholder="e.g. Maddela, Quirino" required>
             </div>
             <button type="submit">Complete Installation</button>
         </form>
@@ -276,7 +277,7 @@
             <h2>Record New Sale</h2>
             
             <div class="review-box">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">CUSTOMER REVIEW DISPLAY (Show to client)</div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">CUSTOMER REVIEW DISPLAY</div>
                 <div id="reviewItemsList">
                     <div class="review-row"><span>(No services added)</span><span>₱0.00</span></div>
                 </div>
@@ -300,9 +301,9 @@
                 <div id="itemsContainer">
                     <!-- Dynamic item rows inserted here -->
                 </div>
-                <button type="button" class="secondary-btn" onclick="addItemRow()">+ Add Another Service or Item</button>
+                <button type="button" class="add-btn" onclick="addItemRow()">+ Add Another Service or Item</button>
 
-                <div class="form-group" style="margin-top: 14px;">
+                <div class="form-group">
                     <label>Mode of Payment</label>
                     <select id="salesPaymentMethod" required>
                         <option value="Cash">Cash</option>
@@ -375,7 +376,7 @@
         <!-- SETTINGS / ITEM MANAGEMENT -->
         <div id="settingsCard" class="card hidden">
             <h2>Item Management</h2>
-            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add default services/items for quick selection.</p>
+            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add default services for your shop.</p>
             <form id="addItemForm">
                 <div class="form-group">
                     <label>New Service / Item Name</label>
@@ -404,7 +405,7 @@
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
         }
-        addItemRow(); // Initialize with one item row
+        addItemRow(); // Initialize with first item row
     });
 
     document.getElementById('setupForm').addEventListener('submit', (e) => {
@@ -559,7 +560,6 @@
         switchPortalTab('sales');
     }
 
-    // Submit Sales with combined itemized string
     document.getElementById('salesForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const rows = document.querySelectorAll('.item-row');
@@ -597,7 +597,6 @@
         }
     });
 
-    // Submit Expense
     document.getElementById('expensesForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const payload = {
@@ -649,3 +648,4 @@
 </script>
 </body>
 </html>
+
