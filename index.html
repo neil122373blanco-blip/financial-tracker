@@ -12,6 +12,7 @@
             --accent-hover: #4338CA;
             --border-color: #E4E4E7;
             --card-bg: #FAFAFA;
+            --danger-color: #EF4444;
         }
 
         * {
@@ -103,6 +104,24 @@
             background-color: var(--accent-hover);
         }
 
+        .secondary-btn {
+            background-color: #10B981;
+            margin-bottom: 10px;
+        }
+        .secondary-btn:hover {
+            background-color: #059669;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            width: auto;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        .delete-btn:hover {
+            background-color: #DC2626;
+        }
+
         .metrics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -148,6 +167,13 @@
             color: #FFFFFF;
         }
 
+        .item-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
         .review-box {
             background: #FFFFFF;
             border: 1px dashed var(--accent-color);
@@ -159,15 +185,17 @@
             display: flex;
             justify-content: space-between;
             font-size: 0.9rem;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .review-total {
             border-top: 1px solid var(--border-color);
-            padding-top: 6px;
+            padding-top: 8px;
+            margin-top: 8px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
             color: var(--accent-color);
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -193,11 +221,11 @@
             </div>
             <div class="form-group">
                 <label>Business Name</label>
-                <input type="text" id="bizName" placeholder="e.g. Habitat 3404 / Casa Delia" required>
+                <input type="text" id="bizName" placeholder="e.g. Neil's Barbers / Habitat 3404" required>
             </div>
             <div class="form-group">
                 <label>Business Address</label>
-                <input type="text" id="bizAddress" placeholder="e.g. Maddela, Quirino" required>
+                <input type="text" id="bizAddress" placeholder="e.g. Poblacion Sur, Maddela, Quirino" required>
             </div>
             <button type="submit">Complete Installation</button>
         </form>
@@ -248,13 +276,12 @@
             <h2>Record New Sale</h2>
             
             <div class="review-box">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">CUSTOMER REVIEW DISPLAY</div>
-                <div class="review-row">
-                    <span id="reviewItemDisplay">Item: (Not selected)</span>
-                    <span id="reviewPriceDisplay">₱0.00</span>
+                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">CUSTOMER REVIEW DISPLAY (Show to client)</div>
+                <div id="reviewItemsList">
+                    <div class="review-row"><span>(No services added)</span><span>₱0.00</span></div>
                 </div>
                 <div class="review-total">
-                    <span>Total Amount Due</span>
+                    <span>Total Amount to Pay</span>
                     <span id="reviewTotalDisplay">₱0.00</span>
                 </div>
             </div>
@@ -265,16 +292,17 @@
                     <input type="text" id="clientName" required>
                 </div>
                 <div class="form-group">
-                    <label>Items</label>
-                    <select id="salesItem" required onchange="updateCustomerReview()">
-                        <option value="">Select Item</option>
-                    </select>
+                    <label>Sales Invoice Number</label>
+                    <input type="text" id="salesInvoiceNo">
                 </div>
-                <div class="form-group">
-                    <label>Manual Price / Amount (₱)</label>
-                    <input type="number" step="0.01" id="salesAmount" placeholder="Enter amount" required oninput="updateCustomerReview()">
+
+                <label>Itemized Charges (Services / Goods)</label>
+                <div id="itemsContainer">
+                    <!-- Dynamic item rows inserted here -->
                 </div>
-                <div class="form-group">
+                <button type="button" class="secondary-btn" onclick="addItemRow()">+ Add Another Service or Item</button>
+
+                <div class="form-group" style="margin-top: 14px;">
                     <label>Mode of Payment</label>
                     <select id="salesPaymentMethod" required>
                         <option value="Cash">Cash</option>
@@ -290,10 +318,6 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Sales Invoice Number</label>
-                    <input type="text" id="salesInvoiceNo">
-                </div>
-                <div class="form-group">
                     <label>Particulars</label>
                     <input type="text" id="salesParticulars">
                 </div>
@@ -305,7 +329,7 @@
             </form>
         </div>
 
-        <!-- EXPENSES FORM -->
+        <!-- EXPENSES FORM (Manual Entry) -->
         <div id="expensesCard" class="card hidden">
             <h2>Record New Expense</h2>
             <form id="expensesForm">
@@ -314,17 +338,12 @@
                     <input type="text" id="expProvider" required>
                 </div>
                 <div class="form-group">
-                    <label>Items / Service</label>
-                    <select id="expItem" required>
-                        <option value="">Select Item/Service</option>
-                        <option value="Utilities">Utilities</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Supplies">Supplies</option>
-                    </select>
+                    <label>Item / Service Description</label>
+                    <input type="text" id="expItem" placeholder="e.g. Electricity Bill, Restock Supplies" required>
                 </div>
                 <div class="form-group">
                     <label>Amount (₱)</label>
-                    <input type="number" step="0.01" id="expAmount" required>
+                    <input type="number" step="0.01" id="expAmount" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
                     <label>Payment Method</label>
@@ -356,11 +375,11 @@
         <!-- SETTINGS / ITEM MANAGEMENT -->
         <div id="settingsCard" class="card hidden">
             <h2>Item Management</h2>
-            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add custom items for your current business.</p>
+            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add default services/items for quick selection.</p>
             <form id="addItemForm">
                 <div class="form-group">
-                    <label>New Item Name</label>
-                    <input type="text" id="newItemName" placeholder="e.g. Deluxe Room / Hall Rental" required>
+                    <label>New Service / Item Name</label>
+                    <input type="text" id="newItemName" placeholder="e.g. Haircut, Shave, Shampoo" required>
                 </div>
                 <button type="submit">Add Item to Dropdown</button>
             </form>
@@ -374,17 +393,7 @@
 
     let sessionToken = "";
     let currentUserRole = "";
-
-    function updateCustomerReview() {
-        const itemSelect = document.getElementById('salesItem');
-        const itemName = itemSelect.value ? itemSelect.value : "(Not selected)";
-        const amountVal = document.getElementById('salesAmount').value;
-        const formattedAmount = amountVal ? "₱" + Number(amountVal).toLocaleString('en-US', {minimumFractionDigits: 2}) : "₱0.00";
-
-        document.getElementById('reviewItemDisplay').innerText = "Item: " + itemName;
-        document.getElementById('reviewPriceDisplay').innerText = formattedAmount;
-        document.getElementById('reviewTotalDisplay').innerText = formattedAmount;
-    }
+    let availableDropdownItems = [];
 
     window.addEventListener('DOMContentLoaded', () => {
         const savedBiz = localStorage.getItem('tracker_biz_name');
@@ -395,6 +404,7 @@
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
         }
+        addItemRow(); // Initialize with one item row
     });
 
     document.getElementById('setupForm').addEventListener('submit', (e) => {
@@ -443,20 +453,82 @@
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getItems" }) });
             const data = await res.json();
             if (data.status === "success" && data.items) {
-                const select = document.getElementById('salesItem');
-                select.innerHTML = '<option value="">Select Item</option>';
-                data.items.forEach(item => {
-                    if (item) {
-                        const opt = document.createElement('option');
-                        opt.value = item;
-                        opt.textContent = item;
-                        select.appendChild(opt);
-                    }
-                });
+                availableDropdownItems = data.items;
+                updateAllItemDropdowns();
             }
         } catch (e) {
             console.error("Could not load items", e);
         }
+    }
+
+    function updateAllItemDropdowns() {
+        const selects = document.querySelectorAll('.item-select');
+        selects.forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">Select Service/Item</option>';
+            availableDropdownItems.forEach(item => {
+                if (item) {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.textContent = item;
+                    if (item === currentVal) opt.selected = true;
+                    select.appendChild(opt);
+                }
+            });
+        });
+    }
+
+    function addItemRow() {
+        const container = document.getElementById('itemsContainer');
+        const rowId = Date.now();
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'item-row';
+        rowDiv.id = `row-${rowId}`;
+
+        let optionsHtml = '<option value="">Select Service/Item</option>';
+        availableDropdownItems.forEach(item => {
+            if (item) optionsHtml += `<option value="${item}">${item}</option>`;
+        });
+
+        rowDiv.innerHTML = `
+            <select class="item-select" style="flex: 2;" required onchange="updateCustomerReview()">${optionsHtml}</select>
+            <input type="number" step="0.01" class="item-price" placeholder="Price (₱)" style="flex: 1;" required oninput="updateCustomerReview()">
+            <button type="button" class="delete-btn" onclick="removeItemRow('${rowId}')">X</button>
+        `;
+        container.appendChild(rowDiv);
+        updateCustomerReview();
+    }
+
+    function removeItemRow(rowId) {
+        const row = document.getElementById(`row-${rowId}`);
+        if (document.querySelectorAll('.item-row').length > 1) {
+            row.remove();
+            updateCustomerReview();
+        } else {
+            alert("You must keep at least one service item.");
+        }
+    }
+
+    function updateCustomerReview() {
+        const rows = document.querySelectorAll('.item-row');
+        const reviewList = document.getElementById('reviewItemsList');
+        reviewList.innerHTML = "";
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const select = row.querySelector('.item-select');
+            const priceInput = row.querySelector('.item-price');
+            const itemName = select.value ? select.value : "(Not selected)";
+            const priceVal = Number(priceInput.value) || 0;
+            grandTotal += priceVal;
+
+            const div = document.createElement('div');
+            div.className = 'review-row';
+            div.innerHTML = `<span>${itemName}</span><span>₱${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`;
+            reviewList.appendChild(div);
+        });
+
+        document.getElementById('reviewTotalDisplay').innerText = "₱" + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
     }
 
     function switchPortalTab(tab) {
@@ -481,17 +553,32 @@
 
     function returnToPortals() {
         document.getElementById('successCard').classList.add('hidden');
+        document.getElementById('salesForm').reset();
+        document.getElementById('itemsContainer').innerHTML = "";
+        addItemRow();
         switchPortalTab('sales');
     }
 
+    // Submit Sales with combined itemized string
     document.getElementById('salesForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const rows = document.querySelectorAll('.item-row');
+        let itemizedDescriptions = [];
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const itemName = row.querySelector('.item-select').value;
+            const price = Number(row.querySelector('.item-price').value) || 0;
+            itemizedDescriptions.push(`${itemName} (₱${price})`);
+            grandTotal += price;
+        });
+
         const payload = {
             action: "submitSale",
             user: currentUserRole,
             clientName: document.getElementById('clientName').value,
-            items: document.getElementById('salesItem').value,
-            totalAmount: document.getElementById('salesAmount').value,
+            items: itemizedDescriptions.join(", "),
+            totalAmount: grandTotal,
             modeOfPayment: document.getElementById('salesPaymentMethod').value,
             paymentStatus: document.getElementById('salesPaymentStatus').value,
             salesInvoiceNo: document.getElementById('salesInvoiceNo').value,
@@ -502,10 +589,34 @@
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
         const data = await res.json();
         if (data.status === "success") {
-            document.getElementById('salesForm').reset();
-            updateCustomerReview();
             document.getElementById('salesCard').classList.add('hidden');
             document.getElementById('successCard').classList.remove('hidden');
+            if (currentUserRole === "MANAGEMENT") fetchMetrics();
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+
+    // Submit Expense
+    document.getElementById('expensesForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            action: "submitExpense",
+            user: currentUserRole,
+            expProvider: document.getElementById('expProvider').value,
+            expItem: document.getElementById('expItem').value,
+            expAmount: document.getElementById('expAmount').value,
+            expPaymentMethod: document.getElementById('expPaymentMethod').value,
+            expPaymentStatus: document.getElementById('expPaymentStatus').value,
+            expParticulars: document.getElementById('expParticulars').value,
+            expNote: document.getElementById('expNote').value
+        };
+
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status === "success") {
+            document.getElementById('expensesForm').reset();
+            alert("Expense recorded successfully!");
             if (currentUserRole === "MANAGEMENT") fetchMetrics();
         } else {
             alert("Error: " + data.message);
