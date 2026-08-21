@@ -298,9 +298,7 @@
                 </div>
 
                 <label>Itemized Charges (Services / Goods)</label>
-                <div id="itemsContainer">
-                    <!-- Dynamic item rows inserted here -->
-                </div>
+                <div id="itemsContainer"></div>
                 <button type="button" class="add-btn" onclick="addItemRow()">+ Add Another Service or Item</button>
 
                 <div class="form-group">
@@ -330,8 +328,7 @@
             </form>
         </div>
 
-
-                <!-- EXPENSES FORM (Multi-Item Entry) -->
+        <!-- EXPENSES FORM -->
         <div id="expensesCard" class="card hidden">
             <h2>Record New Expense</h2>
             
@@ -353,9 +350,7 @@
                 </div>
 
                 <label>Itemized Expense Charges</label>
-                <div id="expItemsContainer">
-                    <!-- Dynamic expense rows inserted here -->
-                </div>
+                <div id="expItemsContainer"></div>
                 <button type="button" class="add-btn" onclick="addExpenseRow()">+ Add Another Expense Item</button>
 
                 <div class="form-group" style="margin-top: 14px;">
@@ -385,29 +380,10 @@
             </form>
         </div>
 
-                <div class="form-group">
-                    <label>Payment Status</label>
-                    <select id="expPaymentStatus" required>
-                        <option value="Paid">Paid</option>
-                        <option value="Unpaid">Unpaid</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Particulars</label>
-                    <input type="text" id="expParticulars">
-                </div>
-                <div class="form-group">
-                    <label>Note</label>
-                    <textarea id="expNote" rows="2"></textarea>
-                </div>
-                <button type="submit">Submit Expense Entry</button>
-            </form>
-        </div>
-
         <!-- SETTINGS / ITEM MANAGEMENT -->
         <div id="settingsCard" class="card hidden">
             <h2>Item Management</h2>
-            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add default services for your shop.</p>
+            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add default services for your shop sales dropdown.</p>
             <form id="addItemForm">
                 <div class="form-group">
                     <label>New Service / Item Name</label>
@@ -421,7 +397,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4keEb9u889czH77xPyqz4yfraPSHPRsYpwVSFJwtDQjc1potUE1-C9wevLfs/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4KeEb9u889czH7xPyqz4yfraPSHPRsYpWVSFJwtDQJ1cPotUE1-C9wevLfs/exec";
 
     let sessionToken = "";
     let currentUserRole = "";
@@ -436,7 +412,8 @@
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
         }
-        addItemRow(); // Initialize with first item row
+        addItemRow();
+        addExpenseRow();
     });
 
     document.getElementById('setupForm').addEventListener('submit', (e) => {
@@ -533,7 +510,7 @@
 
     function removeItemRow(rowId) {
         const row = document.getElementById(`row-${rowId}`);
-        if (document.querySelectorAll('.item-row').length > 1) {
+        if (document.querySelectorAll('#itemsContainer .item-row').length > 1) {
             row.remove();
             updateCustomerReview();
         } else {
@@ -542,7 +519,7 @@
     }
 
     function updateCustomerReview() {
-        const rows = document.querySelectorAll('.item-row');
+        const rows = document.querySelectorAll('#itemsContainer .item-row');
         const reviewList = document.getElementById('reviewItemsList');
         reviewList.innerHTML = "";
         let grandTotal = 0;
@@ -563,6 +540,54 @@
         document.getElementById('reviewTotalDisplay').innerText = "₱" + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
     }
 
+    function addExpenseRow() {
+        const container = document.getElementById('expItemsContainer');
+        const rowId = Date.now();
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'item-row';
+        rowDiv.id = `exp-row-${rowId}`;
+
+        rowDiv.innerHTML = `
+            <input type="text" class="exp-item-desc" placeholder="Item/Service Description" style="flex: 2;" required oninput="updateExpenseReview()">
+            <input type="number" step="0.01" class="exp-item-price" placeholder="Price (₱)" style="flex: 1;" required oninput="updateExpenseReview()">
+            <button type="button" class="delete-btn" onclick="removeExpenseRow('${rowId}')">X</button>
+        `;
+        container.appendChild(rowDiv);
+        updateExpenseReview();
+    }
+
+    function removeExpenseRow(rowId) {
+        const row = document.getElementById(`exp-row-${rowId}`);
+        if (document.querySelectorAll('#expItemsContainer .item-row').length > 1) {
+            row.remove();
+            updateExpenseReview();
+        } else {
+            alert("You must keep at least one expense item.");
+        }
+    }
+
+    function updateExpenseReview() {
+        const rows = document.querySelectorAll('#expItemsContainer .item-row');
+        const reviewList = document.getElementById('reviewExpensesList');
+        reviewList.innerHTML = "";
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const descInput = row.querySelector('.exp-item-desc');
+            const priceInput = row.querySelector('.exp-item-price');
+            const descName = descInput.value ? descInput.value : "(Not specified)";
+            const priceVal = Number(priceInput.value) || 0;
+            grandTotal += priceVal;
+
+            const div = document.createElement('div');
+            div.className = 'review-row';
+            div.innerHTML = `<span>${descName}</span><span>₱${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`;
+            reviewList.appendChild(div);
+        });
+
+        document.getElementById('reviewExpTotalDisplay').innerText = "₱" + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+
     function switchPortalTab(tab) {
         document.getElementById('successCard').classList.add('hidden');
         document.getElementById('salesCard').classList.add('hidden');
@@ -577,6 +602,9 @@
         } else if (tab === 'expenses' && currentUserRole === "MANAGEMENT") {
             document.getElementById('expensesCard').classList.remove('hidden');
             document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            if (document.querySelectorAll('#expItemsContainer .item-row').length === 0) {
+                addExpenseRow();
+            }
         } else if (tab === 'settings' && currentUserRole === "MANAGEMENT") {
             document.getElementById('settingsCard').classList.remove('hidden');
             document.querySelectorAll('.tab-btn')[2].classList.add('active');
@@ -593,7 +621,7 @@
 
     document.getElementById('salesForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const rows = document.querySelectorAll('.item-row');
+        const rows = document.querySelectorAll('#itemsContainer .item-row');
         let itemizedDescriptions = [];
         let grandTotal = 0;
 
@@ -630,12 +658,23 @@
 
     document.getElementById('expensesForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const rows = document.querySelectorAll('#expItemsContainer .item-row');
+        let itemizedDescriptions = [];
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const desc = row.querySelector('.exp-item-desc').value;
+            const price = Number(row.querySelector('.exp-item-price').value) || 0;
+            itemizedDescriptions.push(`${desc} (₱${price})`);
+            grandTotal += price;
+        });
+
         const payload = {
             action: "submitExpense",
             user: currentUserRole,
             expProvider: document.getElementById('expProvider').value,
-            expItem: document.getElementById('expItem').value,
-            expAmount: document.getElementById('expAmount').value,
+            expItem: itemizedDescriptions.join(", "),
+            expAmount: grandTotal,
             expPaymentMethod: document.getElementById('expPaymentMethod').value,
             expPaymentStatus: document.getElementById('expPaymentStatus').value,
             expParticulars: document.getElementById('expParticulars').value,
@@ -646,6 +685,8 @@
         const data = await res.json();
         if (data.status === "success") {
             document.getElementById('expensesForm').reset();
+            document.getElementById('expItemsContainer').innerHTML = "";
+            addExpenseRow();
             alert("Expense recorded successfully!");
             if (currentUserRole === "MANAGEMENT") fetchMetrics();
         } else {
@@ -656,6 +697,10 @@
     document.getElementById('addItemForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const newItem = document.getElementById('newItemName').value.trim();
+        const res = saveItemToBackend(newItem);
+    });
+
+    async function saveItemToBackend(newItem) {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "addItem", token: sessionToken, item: newItem }) });
         const data = await res.json();
         if (data.status === "success") {
@@ -665,7 +710,7 @@
         } else {
             alert("Error: " + data.message);
         }
-    });
+    }
 
     async function fetchMetrics() {
         if (currentUserRole !== "MANAGEMENT") return;
@@ -679,4 +724,3 @@
 </script>
 </body>
 </html>
-
