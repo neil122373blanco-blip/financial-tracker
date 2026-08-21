@@ -330,23 +330,35 @@
             </form>
         </div>
 
-        <!-- EXPENSES FORM (Manual Entry) -->
+
+                <!-- EXPENSES FORM (Multi-Item Entry) -->
         <div id="expensesCard" class="card hidden">
             <h2>Record New Expense</h2>
+            
+            <div class="review-box">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">EXPENSE REVIEW</div>
+                <div id="reviewExpensesList">
+                    <div class="review-row"><span>(No expenses added)</span><span>₱0.00</span></div>
+                </div>
+                <div class="review-total">
+                    <span>Total Expense Amount</span>
+                    <span id="reviewExpTotalDisplay">₱0.00</span>
+                </div>
+            </div>
+
             <form id="expensesForm">
                 <div class="form-group">
                     <label>Provider / Supplier</label>
-                    <input type="text" id="expProvider" required>
+                    <input type="text" id="expProvider" placeholder="e.g. Electric Coop, Supplier Name" required>
                 </div>
-                <div class="form-group">
-                    <label>Item / Service Description</label>
-                    <input type="text" id="expItem" placeholder="e.g. Electricity Bill, Restock Supplies" required>
+
+                <label>Itemized Expense Charges</label>
+                <div id="expItemsContainer">
+                    <!-- Dynamic expense rows inserted here -->
                 </div>
-                <div class="form-group">
-                    <label>Amount (₱)</label>
-                    <input type="number" step="0.01" id="expAmount" placeholder="0.00" required>
-                </div>
-                <div class="form-group">
+                <button type="button" class="add-btn" onclick="addExpenseRow()">+ Add Another Expense Item</button>
+
+                <div class="form-group" style="margin-top: 14px;">
                     <label>Payment Method</label>
                     <select id="expPaymentMethod" required>
                         <option value="Cash">Cash</option>
@@ -354,6 +366,25 @@
                         <option value="Bank Transfer">Bank Transfer</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="expPaymentStatus" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Particulars</label>
+                    <input type="text" id="expParticulars">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="expNote" rows="2"></textarea>
+                </div>
+                <button type="submit">Submit Expense Entry</button>
+            </form>
+        </div>
+
                 <div class="form-group">
                     <label>Payment Status</label>
                     <select id="expPaymentStatus" required>
