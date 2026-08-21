@@ -232,13 +232,13 @@
         </form>
     </section>
 
-    <!-- LOGIN SECTION -->
+    <!-- LOGIN SECTION (Hidden PIN dots) -->
     <section id="loginSection" class="card hidden">
         <h2>System Login</h2>
         <form id="loginForm">
             <div class="form-group">
-                <label>Enter 4-Digit PIN (1234)</label>
-                <input type="password" id="loginPin" maxlength="4" placeholder="----" required>
+                <label>Enter 4-Digit PIN (Management or Employee)</label>
+                <input type="password" id="loginPin" maxlength="4" placeholder="••••" required>
             </div>
             <button type="submit">Access Portal</button>
         </form>
@@ -247,6 +247,7 @@
     <!-- MAIN PORTAL SECTION -->
     <section id="appPortalSection" class="hidden">
         
+        <!-- MANAGEMENT DASHBOARD METRICS (Hidden for Employees) -->
         <div id="managementDashboard" class="hidden">
             <div class="metrics-grid">
                 <div class="metric-box">
@@ -443,8 +444,12 @@
 
                 if (currentUserRole === "MANAGEMENT") {
                     document.getElementById('managementDashboard').classList.remove('hidden');
+                    document.getElementById('btnExpTab').classList.remove('hidden');
+                    document.getElementById('btnSettingsTab').classList.remove('hidden');
                     fetchMetrics();
                 } else {
+                    // Employee role: hide management metrics, expenses tab, and settings tab completely
+                    document.getElementById('managementDashboard').classList.add('hidden');
                     document.getElementById('btnExpTab').classList.add('hidden');
                     document.getElementById('btnSettingsTab').classList.add('hidden');
                 }
@@ -697,7 +702,7 @@
     document.getElementById('addItemForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const newItem = document.getElementById('newItemName').value.trim();
-        const res = saveItemToBackend(newItem);
+        saveItemToBackend(newItem);
     });
 
     async function saveItemToBackend(newItem) {
