@@ -394,195 +394,181 @@
     </section>
 </div>
 
-<script>
-    // PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE:
-    const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4keEb9u889czH77xPyqz4yfraPSHPRsYpwVSFJwtDQjc1potUE1-C9wevLfs/exec";
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4KeEb9u889czH7xPyqz4yfraPSHPRsYpWVSFJwtDQJ1cPotUE1-C9wevLfs/exec";
 
-    let sessionToken = "";
-    let currentUserRole = "";
+        let sessionToken = "";
+        let currentUserRole = "";
 
-    // PASTE updateCustomerReview() RIGHT HERE:
-    function updateCustomerReview() {
-        const itemSelect = document.getElementById('salesItem');
-        const itemName = itemSelect.value ? itemSelect.value : "(Not selected)";
-        const amountVal = document.getElementById('salesAmount').value;
-        const formattedAmount = amountVal ? "₱" + Number(amountVal).toLocaleString('en-US', {minimumFractionDigits: 2}) : "₱0.00";
+        function updateCustomerReview() {
+            const itemSelect = document.getElementById('salesItem');
+            const itemName = itemSelect.value ? itemSelect.value : "(Not selected)";
+            const amountVal = document.getElementById('salesAmount').value;
+            const formattedAmount = amountVal ? "₱" + Number(amountVal).toLocaleString('en-US', {minimumFractionDigits: 2}) : "₱0.00";
 
-        document.getElementById('reviewItemDisplay').innerText = "Item: " + itemName;
-        document.getElementById('reviewPriceDisplay').innerText = formattedAmount;
-        document.getElementById('reviewTotalDisplay').innerText = formattedAmount;
-    }
+            document.getElementById('reviewItemDisplay').innerText = "Item: " + itemName;
+            document.getElementById('reviewPriceDisplay').innerText = formattedAmount;
+            document.getElementById('reviewTotalDisplay').innerText = formattedAmount;
+        }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        // ... rest of your existing script code ...
-    });
-</script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedBiz = localStorage.getItem('tracker_biz_name');
+            const savedAddr = localStorage.getItem('tracker_biz_addr');
+            if (savedBiz && savedAddr) {
+                document.getElementById('displayBizName').innerText = savedBiz;
+                document.getElementById('displayBizMeta').innerText = savedAddr;
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('loginSection').classList.remove('hidden');
+            }
+        });
 
-    // Check if app is already installed/configured in localStorage
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedBiz = localStorage.getItem('tracker_biz_name');
-        const savedAddr = localStorage.getItem('tracker_biz_addr');
-        
-        if (savedBiz && savedAddr) {
-            document.getElementById('displayBizName').innerText = savedBiz;
-            document.getElementById('displayBizMeta').innerText = savedAddr;
+        document.getElementById('setupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const ownerEmail = document.getElementById('ownerEmail').value.trim();
+            const installCode = document.getElementById('installCode').value.trim();
+            const bizName = document.getElementById('bizName').value.trim();
+            const bizAddress = document.getElementById('bizAddress').value.trim();
+            
+            if (ownerEmail !== "neil122373blanco@gmail.com") {
+                alert("Error: Unauthorized email.");
+                return;
+            }
+
+            localStorage.setItem('tracker_biz_name', bizName);
+            localStorage.setItem('tracker_biz_addr', bizAddress);
+            document.getElementById('displayBizName').innerText = bizName;
+            document.getElementById('displayBizMeta').innerText = bizAddress;
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
-        }
-    });
+            alert("App successfully installed and configured!");
+        });
 
-    // Handle Setup Form
-    document.getElementById('setupForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const ownerEmail = document.getElementById('ownerEmail').value.trim();
-        const installCode = document.getElementById('installCode').value.trim();
-        const bizName = document.getElementById('bizName').value.trim();
-        const bizAddress = document.getElementById('bizAddress').value.trim();
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pin = document.getElementById('loginPin').value.trim();
+            try {
+                const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", pin: pin }) });
+                const result = await response.json();
 
-        // Validate App Owner Email whitelist
-        if (ownerEmail !== "neil122373blanco@gmail.com" && ownerEmail !== "branpropertyrental@gmail.com") {
-            alert("Error: Link provided by unauthorized email. Access denied.");
-            return;
-        }
+                if (result.status === "success") {
+                    sessionToken = result.token;
+                    currentUserRole = result.role;
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('appPortalSection').classList.remove('hidden');
 
-        // Save local settings
-        localStorage.setItem('tracker_biz_name', bizName);
-        localStorage.setItem('tracker_biz_addr', bizAddress);
-
-        document.getElementById('displayBizName').innerText = bizName;
-        document.getElementById('displayBizMeta').innerText = bizAddress;
-
-        document.getElementById('setupSection').classList.add('hidden');
-        document.getElementById('loginSection').classList.remove('hidden');
-        alert("App successfully installed and configured!");
-    });
-
-    // Handle Login Form
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const pin = document.getElementById('loginPin').value.trim();
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "login", pin: pin })
-            });
-            const result = await response.json();
-
-            if (result.status === "success") {
-                sessionToken = result.token;
-                currentUserRole = result.role;
-
-                document.getElementById('loginSection').classList.add('hidden');
-                document.getElementById('appPortalSection').classList.remove('hidden');
-
-                if (currentUserRole === "MANAGEMENT") {
-                    document.getElementById('managementDashboard').classList.remove('hidden');
-                    fetchMetrics();
+                    if (currentUserRole === "MANAGEMENT") {
+                        document.getElementById('managementDashboard').classList.remove('hidden');
+                        fetchMetrics();
+                    } else {
+                        document.getElementById('btnExpTab').classList.add('hidden');
+                        document.getElementById('btnSettingsTab').classList.add('hidden');
+                    }
+                    loadDropdownItems();
                 } else {
-                    // Employee role restrictions: hide expenses tab completely
-                    document.getElementById('btnExpTab').classList.add('hidden');
+                    alert("Login Failed: " + result.message);
                 }
-            } else {
-                alert("Login Failed: " + result.message);
+            } catch (err) {
+                alert("Network error connecting to backend: " + err);
             }
-        } catch (err) {
-            alert("Network error connecting to backend: " + err);
-        }
-    });
+        });
 
-    // Fetch Daily Metrics for Management
-    async function fetchMetrics() {
-        if (currentUserRole !== "MANAGEMENT") return;
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "getMetrics", token: sessionToken })
-            });
+        async function loadDropdownItems() {
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getItems" }) });
+                const data = await res.json();
+                if (data.status === "success" && data.items) {
+                    const select = document.getElementById('salesItem');
+                    select.innerHTML = '<option value="">Select Item</option>';
+                    data.items.forEach(item => {
+                        if (item) {
+                            const opt = document.createElement('option');
+                            opt.value = item;
+                            opt.textContent = item;
+                            select.appendChild(opt);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Could not load items", e);
+            }
+        }
+
+        function switchPortalTab(tab) {
+            document.getElementById('successCard').classList.add('hidden');
+            document.getElementById('salesCard').classList.add('hidden');
+            document.getElementById('expensesCard').classList.add('hidden');
+            document.getElementById('settingsCard').classList.add('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            if (tab === 'sales') {
+                document.getElementById('salesCard').classList.remove('hidden');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else if (tab === 'expenses' && currentUserRole === "MANAGEMENT") {
+                document.getElementById('expensesCard').classList.remove('hidden');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            } else if (tab === 'settings' && currentUserRole === "MANAGEMENT") {
+                document.getElementById('settingsCard').classList.remove('hidden');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+            }
+        }
+
+        function returnToPortals() {
+            document.getElementById('successCard').classList.add('hidden');
+            switchPortalTab('sales');
+        }
+
+        document.getElementById('salesForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                action: "submitSale",
+                user: currentUserRole,
+                clientName: document.getElementById('clientName').value,
+                items: document.getElementById('salesItem').value,
+                totalAmount: document.getElementById('salesAmount').value,
+                modeOfPayment: document.getElementById('salesPaymentMethod').value,
+                paymentStatus: document.getElementById('salesPaymentStatus').value,
+                salesInvoiceNo: document.getElementById('salesInvoiceNo').value,
+                particulars: document.getElementById('salesParticulars').value,
+                note: document.getElementById('salesNote').value
+            };
+
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.status === "success") {
+                document.getElementById('salesForm').reset();
+                updateCustomerReview();
+                document.getElementById('salesCard').classList.add('hidden');
+                document.getElementById('successCard').classList.remove('hidden');
+                if (currentUserRole === "MANAGEMENT") fetchMetrics();
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+
+        document.getElementById('addItemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newItem = document.getElementById('newItemName').value.trim();
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "addItem", token: sessionToken, item: newItem }) });
+            const data = await res.json();
+            if (data.status === "success") {
+                alert("Item added successfully!");
+                document.getElementById('newItemName').value = "";
+                loadDropdownItems();
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+
+        async function fetchMetrics() {
+            if (currentUserRole !== "MANAGEMENT") return;
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getMetrics", token: sessionToken }) });
             const res = await response.json();
             if (res.status === "success") {
                 document.getElementById('valSalesToday').innerText = "₱" + Number(res.salesToday).toLocaleString('en-US', {minimumFractionDigits: 2});
                 document.getElementById('valExpToday').innerText = "₱" + Number(res.expensesToday).toLocaleString('en-US', {minimumFractionDigits: 2});
             }
-        } catch (e) {
-            console.error("Could not fetch metrics", e);
         }
-    }
-
-    // Portal Tab Switcher
-    function switchPortalTab(tab) {
-        if (tab === 'sales') {
-            document.getElementById('salesCard').classList.remove('hidden');
-            document.getElementById('expensesCard').classList.add('hidden');
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
-            document.querySelectorAll('.tab-btn')[1].classList.remove('active');
-        } else if (tab === 'expenses' && currentUserRole === "MANAGEMENT") {
-            document.getElementById('salesCard').classList.add('hidden');
-            document.getElementById('expensesCard').classList.remove('hidden');
-            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        }
-    }
-
-    // Submit Sales Entry
-    document.getElementById('salesForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const payload = {
-            action: "submitSale",
-            user: currentUserRole,
-            clientName: document.getElementById('clientName').value,
-            items: document.getElementById('salesItem').value,
-            totalAmount: document.getElementById('salesAmount').value,
-            modeOfPayment: document.getElementById('salesPaymentMethod').value,
-            paymentStatus: document.getElementById('salesPaymentStatus').value,
-            salesInvoiceNo: document.getElementById('salesInvoiceNo').value,
-            particulars: document.getElementById('salesParticulars').value,
-            note: document.getElementById('salesNote').value
-        };
-
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            const data = await res.json();
-            if (data.status === "success") {
-                alert("Sale successfully recorded to Financial Tracker!");
-                document.getElementById('salesForm').reset();
-                if (currentUserRole === "MANAGEMENT") fetchMetrics();
-            } else {
-                alert("Error recording sale: " + data.message);
-            }
-        } catch (err) {
-            alert("Submission error: " + err);
-        }
-    });
-
-    // Submit Expenses Entry
-    document.getElementById('expensesForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const payload = {
-            action: "submitExpense",
-            provider: document.getElementById('expProvider').value,
-            items: document.getElementById('expItem').value,
-            amount: document.getElementById('expAmount').value,
-            paymentMethod: document.getElementById('expPaymentMethod').value,
-            paymentStatus: document.getElementById('expPaymentStatus').value,
-            particulars: document.getElementById('expParticulars').value,
-            note: document.getElementById('expNote').value
-        };
-
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stylesheet || 'POST', body: JSON.stringify(payload) });
-            const data = await res.json();
-            if (data.status === "success") {
-                alert("Expense successfully recorded!");
-                document.getElementById('expensesForm').reset();
-                if (currentUserRole === "MANAGEMENT") fetchMetrics();
-            } else {
-                alert("Error recording expense: " + data.message);
-            }
-        } catch (err) {
-            alert("Submission error: " + err);
-        }
-    });
-</script>
+    </script>
 </body>
 </html>
