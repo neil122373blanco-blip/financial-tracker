@@ -116,6 +116,12 @@
         }
         .google-btn:hover { background-color: #357ae8; }
 
+        .share-btn {
+            background-color: #0284C7;
+            margin-top: 10px;
+        }
+        .share-btn:hover { background-color: #0369A1; }
+
         .add-btn {
             background-color: var(--success-color);
             margin-bottom: 14px;
@@ -302,6 +308,14 @@
                     <div class="metric-value" id="valExpToday">₱0.00</div>
                 </div>
             </div>
+            
+            <!-- Employee Sharing Card -->
+            <div class="card" style="background: #F0F9FF; border-color: #BAE6FD; margin-bottom: 20px;">
+                <h3 style="font-size: 1rem; color: #0369A1; margin-bottom: 6px;">Staff Access Link</h3>
+                <p style="font-size: 0.8rem; color: #0369A1; margin-bottom: 10px;">Share this direct link with your employees so they can access the login portal instantly on their phones:</p>
+                <input type="text" id="employeeShareLink" readonly style="background: #FFFFFF; font-size: 0.8rem; margin-bottom: 8px;">
+                <button type="button" class="share-btn" onclick="copyEmployeeLink()">Copy Employee Link</button>
+            </div>
         </div>
 
         <div class="tab-switcher" id="portalSwitcher">
@@ -482,17 +496,33 @@
     let pendingSubmitType = "";
 
     window.onload = function () {
+        // 1. Check if URL contains a sheet parameter (?sheet=XYZ) for employee onboarding
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSheetId = urlParams.get('sheet');
+        if (urlSheetId) {
+            localStorage.setItem('buyer_sheet_id', urlSheetId);
+            localStorage.setItem('tracker_biz_name', "Configured Business"); // Temporary fallback until login
+        }
+
         const savedSheetId = localStorage.getItem('buyer_sheet_id');
         const savedBiz = localStorage.getItem('tracker_biz_name');
 
         if (!savedSheetId) {
             document.getElementById('activationSection').classList.remove('hidden');
-        } else if (!savedBiz) {
-            document.getElementById('setupSection').classList.remove('hidden');
+        } else if (!savedBiz || savedBiz === "Configured Business") {
+            // If sheet is present from URL but setup hasn't been named yet, pull it straight to login
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('displayBizName').innerText = "Business Portal";
         } else {
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('displayBizName').innerText = savedBiz;
             document.getElementById('displayBizMeta').innerText = localStorage.getItem('tracker_biz_addr') || '';
+        }
+
+        // Populate employee share link box
+        if (savedSheetId) {
+            const employeeLink = window.location.origin + window.location.pathname + "?sheet=" + savedSheetId;
+            document.getElementById('employeeShareLink').value = employeeLink;
         }
 
         addItemRow();
@@ -509,6 +539,14 @@
             },
         });
     };
+
+    function copyEmployeeLink() {
+        const linkInput = document.getElementById('employeeShareLink');
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999); // For mobile devices
+        navigator.clipboard.writeText(linkInput.value);
+        alert("Employee link copied to clipboard! You can now send it via chat or SMS.");
+    }
 
     function triggerGoogleSignIn() {
         const code = document.getElementById('licenseCodeInput').value.trim();
@@ -582,6 +620,11 @@
             document.getElementById('displayBizMeta').innerText = payload.bizAddress;
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
+            
+            // Update employee link box after setup
+            const employeeLink = window.location.origin + window.location.pathname + "?sheet=" + localStorage.getItem('buyer_sheet_id');
+            document.getElementById('employeeShareLink').value = employeeLink;
+
             alert("Setup complete! You can now log in with your management PIN.");
         } else {
             alert("Setup error: " + data.message);
