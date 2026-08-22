@@ -198,6 +198,22 @@
             color: var(--accent-color);
             font-size: 1.1rem;
         }
+        
+        /* Modal Popup for Submission PIN */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #FFFFFF;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
     </style>
 </head>
 <body>
@@ -214,7 +230,7 @@
         <form id="setupForm">
             <div class="form-group">
                 <label>App Owner Email</label>
-                <input type="email" id="ownerEmail" placeholder="neil122373blanco@gmail.com" required>
+                <input type="email" id="ownerEmail" placeholder="owner@gmail.com" required>
             </div>
             <div class="form-group">
                 <label>6-Digit Installation Code</label>
@@ -228,11 +244,15 @@
                 <label>Business Address</label>
                 <input type="text" id="bizAddress" placeholder="e.g. Maddela, Quirino" required>
             </div>
+            <div class="form-group">
+                <label>Set Management 4-Digit PIN</label>
+                <input type="password" id="setupMgmtPin" maxlength="4" placeholder="••••" required>
+            </div>
             <button type="submit">Complete Installation</button>
         </form>
     </section>
 
-    <!-- LOGIN SECTION (Hidden PIN dots) -->
+    <!-- LOGIN SECTION -->
     <section id="loginSection" class="card hidden">
         <h2>System Login</h2>
         <form id="loginForm">
@@ -261,6 +281,7 @@
             </div>
         </div>
 
+        <!-- TAB SWITCHER (Hidden for Employees) -->
         <div class="tab-switcher" id="portalSwitcher">
             <button class="tab-btn active" onclick="switchPortalTab('sales')">Sales Entry</button>
             <button class="tab-btn" id="btnExpTab" onclick="switchPortalTab('expenses')">Expenses</button>
@@ -329,7 +350,7 @@
             </form>
         </div>
 
-        <!-- EXPENSES FORM -->
+        <!-- EXPENSES FORM (Management Only) -->
         <div id="expensesCard" class="card hidden">
             <h2>Record New Expense</h2>
             
@@ -381,28 +402,60 @@
             </form>
         </div>
 
-        <!-- SETTINGS / ITEM MANAGEMENT -->
+        <!-- SETTINGS / MANAGEMENT PANEL (Management Only) -->
         <div id="settingsCard" class="card hidden">
-            <h2>Item Management</h2>
-            <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Add default services for your shop sales dropdown.</p>
-            <form id="addItemForm">
+            <h2>Item & Employee Management</h2>
+            
+            <!-- Add Item -->
+            <form id="addItemForm" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                <label>New Service / Item Name</label>
                 <div class="form-group">
-                    <label>New Service / Item Name</label>
-                    <input type="text" id="newItemName" placeholder="e.g. Haircut, Shave, Shampoo" required>
+                    <input type="text" id="newItemName" placeholder="e.g. Haircut, Shave" required>
                 </div>
                 <button type="submit">Add Item to Dropdown</button>
             </form>
+
+            <!-- Add Employee Passcode (Up to 50) -->
+            <h3>Add Employee Passcode (Max 50)</h3>
+            <form id="addPinForm" style="margin-top: 10px;">
+                <div class="form-group">
+                    <label>Employee Name</label>
+                    <input type="text" id="empName" placeholder="e.g. John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>4-Digit Passcode</label>
+                    <input type="password" id="empPin" maxlength="4" placeholder="••••" required>
+                </div>
+                <button type="submit">Register Employee Passcode</button>
+            </form>
+            <div id="employeeListDisplay" style="margin-top: 14px; font-size: 0.85rem; color: #71717A;"></div>
         </div>
 
     </section>
 </div>
 
+<!-- SUBMISSION CONFIRMATION MODAL -->
+<div id="pinConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Confirm Submission</h3>
+        <p style="font-size: 0.85rem; color: #71717A; margin: 10px 0;">Please enter your passcode to confirm this entry:</p>
+        <input type="password" id="confirmPinInput" maxlength="4" placeholder="••••" style="margin-bottom: 14px;">
+        <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="executeVerifiedSubmit()" style="background: var(--success-color);">Confirm & Submit</button>
+            <button type="button" onclick="closePinModal()" style="background: var(--danger-color);">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4keEb9u889czH77xPyqz4yfraPSHPRsYpwVSFJwtDQjc1potUE1-C9wevLfs/exec";
+    const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
     let sessionToken = "";
     let currentUserRole = "";
+    let currentUserName = "";
     let availableDropdownItems = [];
+    let pendingSubmitPayload = null;
+    let pendingSubmitType = "";
 
     window.addEventListener('DOMContentLoaded', () => {
         const savedBiz = localStorage.getItem('tracker_biz_name');
@@ -417,16 +470,30 @@
         addExpenseRow();
     });
 
-    document.getElementById('setupForm').addEventListener('submit', (e) => {
+    document.getElementById('setupForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const bizName = document.getElementById('bizName').value.trim();
-        const bizAddress = document.getElementById('bizAddress').value.trim();
-        localStorage.setItem('tracker_biz_name', bizName);
-        localStorage.setItem('tracker_biz_addr', bizAddress);
-        document.getElementById('displayBizName').innerText = bizName;
-        document.getElementById('displayBizMeta').innerText = bizAddress;
-        document.getElementById('setupSection').classList.add('hidden');
-        document.getElementById('loginSection').classList.remove('hidden');
+        const payload = {
+            action: "setup",
+            ownerEmail: document.getElementById('ownerEmail').value.trim(),
+            installCode: document.getElementById('installCode').value.trim(),
+            bizName: document.getElementById('bizName').value.trim(),
+            bizAddress: document.getElementById('bizAddress').value.trim(),
+            managementPin: document.getElementById('setupMgmtPin').value.trim()
+        };
+
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status === "success") {
+            localStorage.setItem('tracker_biz_name', payload.bizName);
+            localStorage.setItem('tracker_biz_addr', payload.bizAddress);
+            document.getElementById('displayBizName').innerText = payload.bizName;
+            document.getElementById('displayBizMeta').innerText = payload.bizAddress;
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            alert("Setup complete! You can now log in with your management PIN.");
+        } else {
+            alert("Setup error: " + data.message);
+        }
     });
 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -439,19 +506,20 @@
             if (result.status === "success") {
                 sessionToken = result.token;
                 currentUserRole = result.role;
+                currentUserName = result.name;
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('appPortalSection').classList.remove('hidden');
 
                 if (currentUserRole === "MANAGEMENT") {
                     document.getElementById('managementDashboard').classList.remove('hidden');
-                    document.getElementById('btnExpTab').classList.remove('hidden');
-                    document.getElementById('btnSettingsTab').classList.remove('hidden');
+                    document.getElementById('portalSwitcher').classList.remove('hidden');
                     fetchMetrics();
+                    loadEmployeePins();
                 } else {
-                    // Employee role: hide management metrics, expenses tab, and settings tab completely
+                    // Employee role: hide management dashboard and tab switcher entirely (Sales only)
                     document.getElementById('managementDashboard').classList.add('hidden');
-                    document.getElementById('btnExpTab').classList.add('hidden');
-                    document.getElementById('btnSettingsTab').classList.add('hidden');
+                    document.getElementById('portalSwitcher').classList.add('hidden');
+                    document.getElementById('salesCard').classList.remove('hidden');
                 }
                 loadDropdownItems();
             } else {
@@ -472,6 +540,20 @@
             }
         } catch (e) {
             console.error("Could not load items", e);
+        }
+    }
+
+    async function loadEmployeePins() {
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "getEmployeePins", token: sessionToken }) });
+            const data = await res.json();
+            if (data.status === "success" && data.pins) {
+                const display = document.getElementById('employeeListDisplay');
+                display.innerHTML = `<strong>Registered Employees (${data.pins.length}/50):</strong> ` + 
+                    data.pins.map(p => `${p.name} (PIN: ••••)`).join(", ");
+            }
+        } catch (e) {
+            console.error("Could not load employee pins", e);
         }
     }
 
@@ -604,13 +686,13 @@
         if (tab === 'sales') {
             document.getElementById('salesCard').classList.remove('hidden');
             document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        } else if (tab === 'expenses' && currentUserRole === "MANAGEMENT") {
+        } else if (tab === 'expenses') {
             document.getElementById('expensesCard').classList.remove('hidden');
             document.querySelectorAll('.tab-btn')[1].classList.add('active');
             if (document.querySelectorAll('#expItemsContainer .item-row').length === 0) {
                 addExpenseRow();
             }
-        } else if (tab === 'settings' && currentUserRole === "MANAGEMENT") {
+        } else if (tab === 'settings') {
             document.getElementById('settingsCard').classList.remove('hidden');
             document.querySelectorAll('.tab-btn')[2].classList.add('active');
         }
@@ -621,10 +703,14 @@
         document.getElementById('salesForm').reset();
         document.getElementById('itemsContainer').innerHTML = "";
         addItemRow();
-        switchPortalTab('sales');
+        if (currentUserRole === "MANAGEMENT") {
+            switchPortalTab('sales');
+        } else {
+            document.getElementById('salesCard').classList.remove('hidden');
+        }
     }
 
-    document.getElementById('salesForm').addEventListener('submit', async (e) => {
+    document.getElementById('salesForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const rows = document.querySelectorAll('#itemsContainer .item-row');
         let itemizedDescriptions = [];
@@ -637,9 +723,9 @@
             grandTotal += price;
         });
 
-        const payload = {
+        pendingSubmitPayload = {
             action: "submitSale",
-            user: currentUserRole,
+            user: currentUserName,
             clientName: document.getElementById('clientName').value,
             items: itemizedDescriptions.join(", "),
             totalAmount: grandTotal,
@@ -649,19 +735,11 @@
             particulars: document.getElementById('salesParticulars').value,
             note: document.getElementById('salesNote').value
         };
-
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const data = await res.json();
-        if (data.status === "success") {
-            document.getElementById('salesCard').classList.add('hidden');
-            document.getElementById('successCard').classList.remove('hidden');
-            if (currentUserRole === "MANAGEMENT") fetchMetrics();
-        } else {
-            alert("Error: " + data.message);
-        }
+        pendingSubmitType = "sale";
+        openPinModal();
     });
 
-    document.getElementById('expensesForm').addEventListener('submit', async (e) => {
+    document.getElementById('expensesForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const rows = document.querySelectorAll('#expItemsContainer .item-row');
         let itemizedDescriptions = [];
@@ -674,9 +752,9 @@
             grandTotal += price;
         });
 
-        const payload = {
+        pendingSubmitPayload = {
             action: "submitExpense",
-            user: currentUserRole,
+            user: currentUserName,
             expProvider: document.getElementById('expProvider').value,
             expItem: itemizedDescriptions.join(", "),
             expAmount: grandTotal,
@@ -685,27 +763,62 @@
             expParticulars: document.getElementById('expParticulars').value,
             expNote: document.getElementById('expNote').value
         };
+        pendingSubmitType = "expense";
+        openPinModal();
+    });
 
-        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    function openPinModal() {
+        document.getElementById('confirmPinInput').value = "";
+        document.getElementById('pinConfirmModal').classList.remove('hidden');
+    }
+
+    function closePinModal() {
+        document.getElementById('pinConfirmModal').classList.add('hidden');
+        pendingSubmitPayload = null;
+    }
+
+    async function executeVerifiedSubmit() {
+        const pin = document.getElementById('confirmPinInput').value.trim();
+        if (!pin) {
+            alert("Please enter your passcode to confirm.");
+            return;
+        }
+
+        const authRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "login", pin: pin }) });
+        const authData = await authRes.json();
+
+        if (authData.status !== "success") {
+            alert("Invalid passcode! Submission canceled.");
+            return;
+        }
+
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pendingSubmitPayload) });
         const data = await res.json();
+        
+        closePinModal();
+
         if (data.status === "success") {
-            document.getElementById('expensesForm').reset();
-            document.getElementById('expItemsContainer').innerHTML = "";
-            addExpenseRow();
-            alert("Expense recorded successfully!");
+            if (pendingSubmitType === "sale") {
+                document.getElementById('salesForm').reset();
+                document.getElementById('itemsContainer').innerHTML = "";
+                addItemRow();
+                document.getElementById('salesCard').classList.add('hidden');
+            } else {
+                document.getElementById('expensesForm').reset();
+                document.getElementById('expItemsContainer').innerHTML = "";
+                addExpenseRow();
+                document.getElementById('expensesCard').classList.add('hidden');
+            }
+            document.getElementById('successCard').classList.remove('hidden');
             if (currentUserRole === "MANAGEMENT") fetchMetrics();
         } else {
             alert("Error: " + data.message);
         }
-    });
+    }
 
     document.getElementById('addItemForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const newItem = document.getElementById('newItemName').value.trim();
-        saveItemToBackend(newItem);
-    });
-
-    async function saveItemToBackend(newItem) {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "addItem", token: sessionToken, item: newItem }) });
         const data = await res.json();
         if (data.status === "success") {
@@ -715,7 +828,23 @@
         } else {
             alert("Error: " + data.message);
         }
-    }
+    });
+
+    document.getElementById('addPinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('empName').value.trim();
+        const pin = document.getElementById('empPin').value.trim();
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "addEmployeePin", token: sessionToken, pin: pin, name: name }) });
+        const data = await res.json();
+        if (data.status === "success") {
+            alert("Employee passcode registered successfully!");
+            document.getElementById('empName').value = "";
+            document.getElementById('empPin').value = "";
+            loadEmployeePins();
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
 
     async function fetchMetrics() {
         if (currentUserRole !== "MANAGEMENT") return;
