@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Financial Tracker - Activation</title>
+<title>Financial Tracker - Dashboard</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
@@ -21,11 +21,12 @@ padding: 20px;
 display: flex;
 justify-content: center;
 align-items: center;
-height: 100vh;
+min-height: 100vh;
+box-sizing: border-box;
 }
 .container {
 width: 100%;
-max-width: 450px;
+max-width: 500px;
 background: var(--card-bg);
 border: 1px solid var(--border-color);
 padding: 30px;
@@ -36,10 +37,23 @@ h1 { font-size: 1.4rem; margin-bottom: 8px; text-align: center; }
 p { font-size: 0.9rem; color: #71717A; margin-bottom: 20px; text-align: center; }
 .form-group { margin-bottom: 16px; }
 label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
-input {
+input, select {
 width: 100%; padding: 12px; border: 1px solid var(--border-color);
 border-radius: 6px; font-size: 1rem; background: #FFFFFF; box-sizing: border-box;
 }
+.primary-btn {
+width: 100%;
+padding: 12px;
+background-color: var(--accent-color);
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+margin-top: 10px;
+}
+.primary-btn:hover { background-color: #4338CA; }
 .google-btn {
 width: 100%;
 padding: 12px;
@@ -59,29 +73,74 @@ margin-top: 10px;
 .google-btn:hover { background-color: #357ae8; }
 .hidden { display: none !important; }
 .loader { text-align: center; font-weight: 600; color: var(--accent-color); margin-top: 15px; }
+.nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+.nav-tab { background: none; border: none; font-weight: 600; cursor: pointer; color: #71717A; padding: 6px 12px; }
+.nav-tab.active { color: var(--accent-color); border-bottom: 2px solid var(--accent-color); }
 </style>
 </head>
 <body> 
 
 <div class="container">
-<h1>Activate Financial Tracker</h1>
-<p>Enter your single-use code and sign in with Google to set up your private tracker.</p> 
+    <!-- ACTIVATION VIEW -->
+    <div id="activationView">
+        <h1>Activate Financial Tracker</h1>
+        <p>Enter your single-use code and sign in with Google to set up your private tracker.</p> 
+        <div class="form-group">
+            <label>Activation Code</label>
+            <input type="text" id="licenseCodeInput" placeholder="e.g. TEST-1111-XYZ" required>
+        </div> 
+        <div class="form-group" style="margin-top: 24px;">
+            <button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
+                Sign in with Google & Activate
+            </button>
+        </div>
+        <div id="statusLoader" class="loader hidden">Setting up your private Google Sheet... Please wait.</div>
+    </div>
 
-<!-- ACTIVATION FORM -->
-<div id="activationStep">
-<div class="form-group">
-<label>Activation Code</label>
-<input type="text" id="licenseCodeInput" placeholder="e.g. TEST-1234-XYZ" required>
-</div> 
+    <!-- MAIN APP DASHBOARD VIEW -->
+    <div id="dashboardView" class="hidden">
+        <h1>Financial Tracker</h1>
+        <p id="userEmailDisplay" style="font-size:0.8rem; margin-bottom:15px;"></p>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('sale')">Log Sale</button>
+            <button class="nav-tab" onclick="switchTab('expense')">Log Expense</button>
+        </div>
 
-<div class="form-group" style="margin-top: 24px;">
-<button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
-Sign in with Google & Activate
-</button>
-</div>
-</div> 
+        <!-- SALE FORM -->
+        <div id="saleTab">
+            <div class="form-group">
+                <label>Client Name</label>
+                <input type="text" id="clientName" placeholder="Client or customer name">
+            </div>
+            <div class="form-group">
+                <label>Items / Particulars</label>
+                <input type="text" id="saleItems" placeholder="Product or service description">
+            </div>
+            <div class="form-group">
+                <label>Total Amount</label>
+                <input type="number" id="saleAmount" placeholder="0.00">
+            </div>
+            <button type="button" class="primary-btn" onclick="submitSale()">Save Sale Entry</button>
+        </div>
 
-<div id="statusLoader" class="loader hidden">Setting up your private Google Sheet... Please wait.</div>
+        <!-- EXPENSE FORM -->
+        <div id="expenseTab" class="hidden">
+            <div class="form-group">
+                <label>Provider / Vendor</label>
+                <input type="text" id="expProvider" placeholder="Supplier name">
+            </div>
+            <div class="form-group">
+                <label>Expense Items</label>
+                <input type="text" id="expItem" placeholder="What was purchased?">
+            </div>
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" id="expAmount" placeholder="0.00">
+            </div>
+            <button type="button" class="primary-btn" onclick="submitExpense()">Save Expense Entry</button>
+        </div>
+    </div>
 </div> 
 
 <script>
@@ -93,72 +152,100 @@ let accessToken = "";
 let userEmail = ""; 
 
 window.onload = function () {
-tokenClient = google.accounts.oauth2.initTokenClient({
-client_id: CLIENT_ID,
-scope: 'email profile',
-callback: async (tokenResponse) => {
-if (tokenResponse && tokenResponse.access_token) {
-accessToken = tokenResponse.access_token;
-await fetchUserEmailAndActivate();
-}
-},
-});
+    // Check if user already activated and has a sheet ID stored in browser
+    const savedSheetId = localStorage.getItem('buyer_sheet_id');
+    const savedEmail = localStorage.getItem('buyer_email');
+
+    if (savedSheetId) {
+        document.getElementById('activationView').classList.add('hidden');
+        document.getElementById('dashboardView').classList.remove('hidden');
+        document.getElementById('userEmailDisplay').innerText = "Connected Account: " + (savedEmail || "Active User");
+        return;
+    }
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: 'email profile',
+        callback: async (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                accessToken = tokenResponse.access_token;
+                await fetchUserEmailAndActivate();
+            }
+        },
+    });
 }; 
 
 function triggerGoogleSignIn() {
-const code = document.getElementById('licenseCodeInput').value.trim();
-if (!code) {
-alert("Please enter your activation code first.");
-return;
-}
-tokenClient.requestAccessToken({prompt: 'consent'});
+    const code = document.getElementById('licenseCodeInput').value.trim();
+    if (!code) {
+        alert("Please enter your activation code first.");
+        return;
+    }
+    tokenClient.requestAccessToken({prompt: 'consent'});
 } 
 
 async function fetchUserEmailAndActivate() {
-const code = document.getElementById('licenseCodeInput').value.trim(); 
+    const code = document.getElementById('licenseCodeInput').value.trim(); 
+    try {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const profile = await res.json();
+        userEmail = profile.email; 
 
-try {
-const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-headers: { 'Authorization': `Bearer ${accessToken}` }
-});
-const profile = await res.json();
-userEmail = profile.email; 
+        if (!userEmail) throw new Error("Could not retrieve email from Google profile."); 
 
-if (!userEmail) {
-throw new Error("Could not retrieve email from Google profile.");
-} 
+        document.getElementById('activationStep').classList.add('hidden');
+        document.getElementById('statusLoader').classList.remove('hidden'); 
 
-document.getElementById('activationStep').classList.add('hidden');
-document.getElementById('statusLoader').classList.remove('hidden'); 
+        const verifyRes = await fetch(LICENSE_SERVER_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "verifyAndActivate",
+                code: code,
+                buyerEmail: userEmail
+            })
+        });
+        const verifyData = await verifyRes.json(); 
 
-// Send activation request to Master Apps Script (which creates the sheet securely)
-const verifyRes = await fetch(LICENSE_SERVER_URL, {
-method: 'POST',
-body: JSON.stringify({
-action: "verifyAndActivate",
-code: code,
-buyerEmail: userEmail
-})
-});
-const verifyData = await verifyRes.json(); 
+        if (verifyData.status !== "success") {
+            alert("Activation Failed: " + verifyData.message);
+            location.reload();
+            return;
+        } 
 
-if (verifyData.status !== "success") {
-alert("Activation Failed: " + verifyData.message);
-location.reload();
-return;
-} 
+        localStorage.setItem('buyer_sheet_id', verifyData.spreadsheetId);
+        localStorage.setItem('buyer_email', userEmail);
+        
+        alert("Success! Your private financial tracker has been created.");
+        location.reload();
 
-// Success! Save sheet ID and complete
-alert("Success! Your private financial tracker has been created.");
-localStorage.setItem('buyer_sheet_id', verifyData.spreadsheetId);
-localStorage.setItem('buyer_email', userEmail);
-document.getElementById('statusLoader').innerText = "Setup complete! Launching app...";
-setTimeout(() => { location.reload(); }, 1500);
-
-} catch (err) {
-alert("Activation error: " + err.message);
-location.reload();
+    } catch (err) {
+        alert("Activation error: " + err.message);
+        location.reload();
+    }
 }
+
+function switchTab(tab) {
+    if (tab === 'sale') {
+        document.getElementById('saleTab').classList.remove('hidden');
+        document.getElementById('expenseTab').classList.add('hidden');
+        document.querySelectorAll('.nav-tab')[0].classList.add('active');
+        document.querySelectorAll('.nav-tab')[1].classList.remove('active');
+    } else {
+        document.getElementById('saleTab').classList.add('hidden');
+        document.getElementById('expenseTab').classList.remove('hidden');
+        document.querySelectorAll('.nav-tab')[0].classList.remove('active');
+        document.querySelectorAll('.nav-tab')[1].classList.add('active');
+    }
+}
+
+async function submitSale() {
+    alert("Sale form ready! Next, we will link this directly to append rows to your cloud Google Sheet.");
+}
+
+async function submitExpense() {
+    alert("Expense form ready! Next, we will link this directly to append rows to your cloud Google Sheet.");
 }
 </script> 
 
