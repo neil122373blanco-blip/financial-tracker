@@ -52,6 +52,7 @@
         .business-meta {
             font-size: 0.75rem;
             color: #71717A;
+            margin-bottom: 12px;
         }
 
         .card {
@@ -118,7 +119,11 @@
 
         .share-btn {
             background-color: #0284C7;
-            margin-top: 10px;
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            width: auto;
+            display: inline-block;
+            margin-top: 4px;
         }
         .share-btn:hover { background-color: #0369A1; }
 
@@ -238,6 +243,10 @@
     <header>
         <h1 id="displayBizName">Financial Tracker</h1>
         <div class="business-meta" id="displayBizMeta">Setting up system...</div>
+        <!-- Compact Copy Employee Link Button (Visible for Management only) -->
+        <div id="managementShareWrapper" class="hidden">
+            <button type="button" class="share-btn" onclick="copyEmployeeLink()">Copy Employee Link</button>
+        </div>
     </header>
 
     <!-- LICENSE ACTIVATION SECTION -->
@@ -307,14 +316,6 @@
                     <div style="font-size: 0.8rem; color: #71717A;">Today's Expenses</div>
                     <div class="metric-value" id="valExpToday">₱0.00</div>
                 </div>
-            </div>
-            
-            <!-- Employee Sharing Card -->
-            <div class="card" style="background: #F0F9FF; border-color: #BAE6FD; margin-bottom: 20px;">
-                <h3 style="font-size: 1rem; color: #0369A1; margin-bottom: 6px;">Staff Access Link</h3>
-                <p style="font-size: 0.8rem; color: #0369A1; margin-bottom: 10px;">Share this direct link with your employees so they can access the login portal instantly on their phones:</p>
-                <input type="text" id="employeeShareLink" readonly style="background: #FFFFFF; font-size: 0.8rem; margin-bottom: 8px;">
-                <button type="button" class="share-btn" onclick="copyEmployeeLink()">Copy Employee Link</button>
             </div>
         </div>
 
@@ -496,12 +497,11 @@
     let pendingSubmitType = "";
 
     window.onload = function () {
-        // 1. Check if URL contains a sheet parameter (?sheet=XYZ) for employee onboarding
         const urlParams = new URLSearchParams(window.location.search);
         const urlSheetId = urlParams.get('sheet');
         if (urlSheetId) {
             localStorage.setItem('buyer_sheet_id', urlSheetId);
-            localStorage.setItem('tracker_biz_name', "Configured Business"); // Temporary fallback until login
+            localStorage.setItem('tracker_biz_name', "Configured Business");
         }
 
         const savedSheetId = localStorage.getItem('buyer_sheet_id');
@@ -510,19 +510,12 @@
         if (!savedSheetId) {
             document.getElementById('activationSection').classList.remove('hidden');
         } else if (!savedBiz || savedBiz === "Configured Business") {
-            // If sheet is present from URL but setup hasn't been named yet, pull it straight to login
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('displayBizName').innerText = "Business Portal";
         } else {
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('displayBizName').innerText = savedBiz;
             document.getElementById('displayBizMeta').innerText = localStorage.getItem('tracker_biz_addr') || '';
-        }
-
-        // Populate employee share link box
-        if (savedSheetId) {
-            const employeeLink = window.location.origin + window.location.pathname + "?sheet=" + savedSheetId;
-            document.getElementById('employeeShareLink').value = employeeLink;
         }
 
         addItemRow();
@@ -541,11 +534,25 @@
     };
 
     function copyEmployeeLink() {
-        const linkInput = document.getElementById('employeeShareLink');
-        linkInput.select();
-        linkInput.setSelectionRange(0, 99999); // For mobile devices
-        navigator.clipboard.writeText(linkInput.value);
-        alert("Employee link copied to clipboard! You can now send it via chat or SMS.");
+        const savedSheetId = localStorage.getItem('buyer_sheet_id');
+        if (!savedSheetId) {
+            alert("No active sheet ID found.");
+            return;
+        }
+        const employeeLink = window.location.origin + window.location.pathname + "?sheet=" + savedSheetId;
+        
+        navigator.clipboard.writeText(employeeLink).then(() => {
+            alert("Employee link copied to clipboard!");
+        }).catch(err => {
+            // Fallback for older mobile browsers
+            const tempInput = document.createElement('input');
+            tempInput.value = employeeLink;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert("Employee link copied to clipboard!");
+        });
     }
 
     function triggerGoogleSignIn() {
@@ -620,11 +627,6 @@
             document.getElementById('displayBizMeta').innerText = payload.bizAddress;
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
-            
-            // Update employee link box after setup
-            const employeeLink = window.location.origin + window.location.pathname + "?sheet=" + localStorage.getItem('buyer_sheet_id');
-            document.getElementById('employeeShareLink').value = employeeLink;
-
             alert("Setup complete! You can now log in with your management PIN.");
         } else {
             alert("Setup error: " + data.message);
@@ -655,11 +657,13 @@
                 if (currentUserRole === "MANAGEMENT") {
                     document.getElementById('managementDashboard').classList.remove('hidden');
                     document.getElementById('btnSettingsTab').classList.remove('hidden');
+                    document.getElementById('managementShareWrapper').classList.remove('hidden');
                     fetchMetrics();
                     loadEmployeePins();
                 } else {
                     document.getElementById('managementDashboard').classList.add('hidden');
                     document.getElementById('btnSettingsTab').classList.add('hidden');
+                    document.getElementById('managementShareWrapper').classList.add('hidden');
                 }
                 loadDropdownItems();
             } else {
