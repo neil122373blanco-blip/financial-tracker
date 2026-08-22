@@ -281,7 +281,7 @@
             </div>
         </div>
 
-        <!-- TAB SWITCHER (Hidden for Employees) -->
+        <!-- TAB SWITCHER (Sales & Expenses visible to Employees; Settings Management only) -->
         <div class="tab-switcher" id="portalSwitcher">
             <button class="tab-btn active" onclick="switchPortalTab('sales')">Sales Entry</button>
             <button class="tab-btn" id="btnExpTab" onclick="switchPortalTab('expenses')">Expenses</button>
@@ -350,7 +350,7 @@
             </form>
         </div>
 
-        <!-- EXPENSES FORM (Management Only) -->
+        <!-- EXPENSES FORM (Accessible to Employees & Management) -->
         <div id="expensesCard" class="card hidden">
             <h2>Record New Expense</h2>
             
@@ -448,7 +448,7 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4keEb9u889czH77xPyqz4yfraPSHPRsYpwVSFJwtDQjc1potUE1-C9wevLfs/exec";
+    const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
     let sessionToken = "";
     let currentUserRole = "";
@@ -512,14 +512,13 @@
 
                 if (currentUserRole === "MANAGEMENT") {
                     document.getElementById('managementDashboard').classList.remove('hidden');
-                    document.getElementById('portalSwitcher').classList.remove('hidden');
+                    document.getElementById('btnSettingsTab').classList.remove('hidden');
                     fetchMetrics();
                     loadEmployeePins();
                 } else {
-                    // Employee role: hide management dashboard and tab switcher entirely (Sales only)
+                    // Employee role: hide dashboard and Settings tab, but show Sales & Expenses tabs
                     document.getElementById('managementDashboard').classList.add('hidden');
-                    document.getElementById('portalSwitcher').classList.add('hidden');
-                    document.getElementById('salesCard').classList.remove('hidden');
+                    document.getElementById('btnSettingsTab').classList.add('hidden');
                 }
                 loadDropdownItems();
             } else {
@@ -692,7 +691,7 @@
             if (document.querySelectorAll('#expItemsContainer .item-row').length === 0) {
                 addExpenseRow();
             }
-        } else if (tab === 'settings') {
+        } else if (tab === 'settings' && currentUserRole === "MANAGEMENT") {
             document.getElementById('settingsCard').classList.remove('hidden');
             document.querySelectorAll('.tab-btn')[2].classList.add('active');
         }
@@ -703,11 +702,7 @@
         document.getElementById('salesForm').reset();
         document.getElementById('itemsContainer').innerHTML = "";
         addItemRow();
-        if (currentUserRole === "MANAGEMENT") {
-            switchPortalTab('sales');
-        } else {
-            document.getElementById('salesCard').classList.remove('hidden');
-        }
+        switchPortalTab('sales');
     }
 
     document.getElementById('salesForm').addEventListener('submit', (e) => {
