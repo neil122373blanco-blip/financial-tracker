@@ -138,12 +138,20 @@
         .delete-btn {
             background-color: var(--danger-color);
             width: auto;
-            padding: 10px 14px;
-            font-size: 0.9rem;
+            padding: 8px 12px;
+            font-size: 0.85rem;
         }
         .delete-btn:hover {
             background-color: #DC2626;
         }
+
+        .edit-btn {
+            background-color: #D97706;
+            width: auto;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+        .edit-btn:hover { background-color: #B45309; }
 
         .metrics-grid {
             display: grid;
@@ -197,6 +205,18 @@
             align-items: center;
         }
 
+        .setting-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
         .review-box {
             background: #FFFFFF;
             border: 1px dashed var(--accent-color);
@@ -243,7 +263,6 @@
     <header>
         <h1 id="displayBizName">Financial Tracker</h1>
         <div class="business-meta" id="displayBizMeta">Setting up system...</div>
-        <!-- Compact Copy Employee Link Button (Visible for Management only) -->
         <div id="managementShareWrapper" class="hidden">
             <button type="button" class="share-btn" onclick="copyEmployeeLink()">Copy Employee Link</button>
         </div>
@@ -441,15 +460,22 @@
 
         <!-- SETTINGS PANEL -->
         <div id="settingsCard" class="card hidden">
-            <h2>Item & Employee Management</h2>
+            <h2>Item & Price Management</h2>
             
             <form id="addItemForm" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-                <label>New Service / Item Name</label>
                 <div class="form-group">
-                    <input type="text" id="newItemName" placeholder="e.g. Haircut, Shave" required>
+                    <label>Service / Item Name</label>
+                    <input type="text" id="newItemName" placeholder="e.g. Haircut" required>
                 </div>
-                <button type="submit">Add Item to Dropdown</button>
+                <div class="form-group">
+                    <label>Default Price (₱)</label>
+                    <input type="number" step="0.01" id="newItemPrice" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="add-btn" style="width: 100%;">Add Item to Catalog</button>
             </form>
+
+            <h3>Catalog Items</h3>
+            <div id="settingsItemsList" style="margin-top: 10px; margin-bottom: 24px;"></div>
 
             <h3>Add Employee Passcode (Max 50)</h3>
             <form id="addPinForm" style="margin-top: 10px;">
@@ -467,6 +493,26 @@
         </div>
 
     </section>
+</div>
+
+<!-- EDIT ITEM MODAL -->
+<div id="editItemModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Edit Item & Price</h3>
+        <input type="hidden" id="editOldItemName">
+        <div class="form-group" style="margin-top: 14px;">
+            <label>Item Name</label>
+            <input type="text" id="editItemNameInput" required>
+        </div>
+        <div class="form-group">
+            <label>Price (₱)</label>
+            <input type="number" step="0.01" id="editItemPriceInput" required>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button type="button" onclick="saveEditedItem()" style="background: var(--success-color);">Save Changes</button>
+            <button type="button" onclick="closeEditModal()" style="background: var(--danger-color);">Cancel</button>
+        </div>
+    </div>
 </div>
 
 <!-- SUBMISSION CONFIRMATION MODAL -->
@@ -492,7 +538,7 @@
     let sessionToken = "";
     let currentUserRole = "";
     let currentUserName = "";
-    let availableDropdownItems = [];
+    let catalogItems = []; // Stores {name, price}
     let pendingSubmitPayload = null;
     let pendingSubmitType = "";
 
@@ -544,7 +590,6 @@
         navigator.clipboard.writeText(employeeLink).then(() => {
             alert("Employee link copied to clipboard!");
         }).catch(err => {
-            // Fallback for older mobile browsers
             const tempInput = document.createElement('input');
             tempInput.value = employeeLink;
             document.body.appendChild(tempInput);
@@ -665,7 +710,7 @@
                     document.getElementById('btnSettingsTab').classList.add('hidden');
                     document.getElementById('managementShareWrapper').classList.add('hidden');
                 }
-                loadDropdownItems();
+                loadCatalogItems();
             } else {
                 alert("Login Failed: " + result.message);
             }
@@ -674,7 +719,7 @@
         }
     });
 
-    async function loadDropdownItems() {
+    async function loadCatalogItems() {
         try {
             const res = await fetch(API_URL, { 
                 method: 'POST', 
@@ -685,12 +730,35 @@
             });
             const data = await res.json();
             if (data.status === "success" && data.items) {
-                availableDropdownItems = data.items;
+                catalogItems = data.items;
                 updateAllItemDropdowns();
+                renderSettingsCatalog();
             }
         } catch (e) {
-            console.error("Could not load items", e);
+            console.error("Could not load catalog items", e);
         }
+    }
+
+    function renderSettingsCatalog() {
+        const listDiv = document.getElementById('settingsItemsList');
+        if (catalogItems.length === 0) {
+            listDiv.innerHTML = `<div style="font-size: 0.85rem; color: #71717A;">No items added yet.</div>`;
+            return;
+        }
+
+        listDiv.innerHTML = "";
+        catalogItems.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'setting-item-row';
+            row.innerHTML = `
+                <span><strong>${item.name}</strong> - ₱${Number(item.price).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                <div style="display: flex; gap: 4px;">
+                    <button type="button" class="edit-btn" onclick="openEditModal('${item.name}', ${item.price})">Edit</button>
+                    <button type="button" class="delete-btn" onclick="deleteCatalogItem('${item.name}')">Delete</button>
+                </div>
+            `;
+            listDiv.appendChild(row);
+        });
     }
 
     async function loadEmployeePins() {
@@ -719,16 +787,28 @@
         selects.forEach(select => {
             const currentVal = select.value;
             select.innerHTML = '<option value="">Select Service/Item</option>';
-            availableDropdownItems.forEach(item => {
-                if (item) {
-                    const opt = document.createElement('option');
-                    opt.value = item;
-                    opt.textContent = item;
-                    if (item === currentVal) opt.selected = true;
-                    select.appendChild(opt);
-                }
+            catalogItems.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.name;
+                opt.textContent = `${item.name} (₱${item.price})`;
+                if (item.name === currentVal) opt.selected = true;
+                select.appendChild(opt);
             });
         });
+    }
+
+    function onItemSelected(selectElem) {
+        const rowDiv = selectElem.closest('.item-row');
+        const priceInput = rowDiv.querySelector('.item-price');
+        const selectedName = selectElem.value;
+
+        const found = catalogItems.find(i => i.name === selectedName);
+        if (found) {
+            priceInput.value = found.price;
+        } else {
+            priceInput.value = "";
+        }
+        updateCustomerReview();
     }
 
     function addItemRow() {
@@ -739,12 +819,12 @@
         rowDiv.id = `row-${rowId}`;
 
         let optionsHtml = '<option value="">Select Service/Item</option>';
-        availableDropdownItems.forEach(item => {
-            if (item) optionsHtml += `<option value="${item}">${item}</option>`;
+        catalogItems.forEach(item => {
+            optionsHtml += `<option value="${item.name}">${item.name} (₱${item.price})</option>`;
         });
 
         rowDiv.innerHTML = `
-            <select class="item-select" style="flex: 2;" required onchange="updateCustomerReview()">${optionsHtml}</select>
+            <select class="item-select" style="flex: 2;" required onchange="onItemSelected(this)">${optionsHtml}</select>
             <input type="number" step="0.01" class="item-price" placeholder="Price (₱)" style="flex: 1;" required oninput="updateCustomerReview()">
             <button type="button" class="delete-btn" onclick="removeItemRow('${rowId}')">X</button>
         `;
@@ -981,24 +1061,85 @@
     document.getElementById('addItemForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const newItem = document.getElementById('newItemName').value.trim();
+        const newPrice = document.getElementById('newItemPrice').value.trim();
         const res = await fetch(API_URL, { 
             method: 'POST', 
             body: JSON.stringify({ 
                 action: "addItem", 
                 spreadsheetId: localStorage.getItem('buyer_sheet_id'),
                 token: sessionToken, 
-                item: newItem 
+                item: newItem,
+                price: newPrice 
             }) 
         });
         const data = await res.json();
         if (data.status === "success") {
-            alert("Item added successfully!");
+            alert("Item and price added successfully!");
             document.getElementById('newItemName').value = "";
-            loadDropdownItems();
+            document.getElementById('newItemPrice').value = "";
+            loadCatalogItems();
         } else {
             alert("Error: " + data.message);
         }
     });
+
+    function openEditModal(name, price) {
+        document.getElementById('editOldItemName').value = name;
+        document.getElementById('editItemNameInput').value = name;
+        document.getElementById('editItemPriceInput').value = price;
+        document.getElementById('editItemModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editItemModal').classList.add('hidden');
+    }
+
+    async function saveEditedItem() {
+        const oldItem = document.getElementById('editOldItemName').value;
+        const newItem = document.getElementById('editItemNameInput').value.trim();
+        const newPrice = document.getElementById('editItemPriceInput').value.trim();
+
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "updateItem",
+                spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                token: sessionToken,
+                oldItem: oldItem,
+                newItem: newItem,
+                newPrice: newPrice
+            })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+            alert("Item updated successfully!");
+            closeEditModal();
+            loadCatalogItems();
+        } else {
+            alert("Error: " + data.message);
+        }
+    }
+
+    async function deleteCatalogItem(itemName) {
+        if (!confirm(`Are you sure you want to delete "${itemName}"?`)) return;
+
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "deleteItem",
+                spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                token: sessionToken,
+                item: itemName
+            })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+            alert("Item deleted successfully!");
+            loadCatalogItems();
+        } else {
+            alert("Error: " + data.message);
+        }
+    }
 
     document.getElementById('addPinForm').addEventListener('submit', async (e) => {
         e.preventDefault();
