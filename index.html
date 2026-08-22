@@ -234,7 +234,7 @@
         <div class="business-meta" id="displayBizMeta">Setting up system...</div>
     </header>
 
-    <!-- LICENSE ACTIVATION SECTION (First-Time Gate) -->
+    <!-- LICENSE ACTIVATION SECTION -->
     <section id="activationSection" class="card hidden">
         <h2>Activate Financial Tracker</h2>
         <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Enter your single-use code and sign in with Google to set up your private tracker sheet.</p>
@@ -424,7 +424,7 @@
             </form>
         </div>
 
-        <!-- SETTINGS / MANAGEMENT PANEL -->
+        <!-- SETTINGS PANEL -->
         <div id="settingsCard" class="card hidden">
             <h2>Item & Employee Management</h2>
             
@@ -486,13 +486,10 @@
         const savedBiz = localStorage.getItem('tracker_biz_name');
 
         if (!savedSheetId) {
-            // Step 1: Needs Activation Gate
             document.getElementById('activationSection').classList.remove('hidden');
         } else if (!savedBiz) {
-            // Step 2: Activated, but needs Setup
             document.getElementById('setupSection').classList.remove('hidden');
         } else {
-            // Step 3: Regular PIN Login
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('displayBizName').innerText = savedBiz;
             document.getElementById('displayBizMeta').innerText = localStorage.getItem('tracker_biz_addr') || '';
@@ -501,7 +498,6 @@
         addItemRow();
         addExpenseRow();
 
-        // Initialize Google OAuth Token Client for activation
         tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,
             scope: 'email profile',
