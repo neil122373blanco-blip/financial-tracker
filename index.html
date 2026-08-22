@@ -38,8 +38,25 @@
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
         input {
             width: 100%; padding: 12px; border: 1px solid var(--border-color);
-            border-radius: 6px; font-size: 1rem; background: #FFFFFF;
+            border-radius: 6px; font-size: 1rem; background: #FFFFFF; box-sizing: border-box;
         }
+        .google-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .google-btn:hover { background-color: #357ae8; }
         .hidden { display: none !important; }
         .loader { text-align: center; font-weight: 600; color: var(--accent-color); margin-top: 15px; }
     </style>
@@ -54,12 +71,13 @@
     <div id="activationStep">
         <div class="form-group">
             <label>Activation Code</label>
-            <input type="text" id="licenseCodeInput" placeholder="e.g. FIN-1111-XYZ" required>
+            <input type="text" id="licenseCodeInput" placeholder="e.g. TEST-1234-XYZ" required>
         </div>
         
         <div class="form-group" style="margin-top: 24px;">
-            <!-- Google Sign-In Button Container -->
-            <div id="googleSignInBtn" style="display: flex; justify-content: center;"></div>
+            <button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
+                Sign in with Google & Activate
+            </button>
         </div>
     </div>
 
@@ -67,50 +85,62 @@
 </div>
 
 <script>
-    // PASTE YOUR CLIENT ID AND LICENSE SERVER URL HERE WHEN READY
-    const CLIENT_ID = const CLIENT_ID = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com";
+    const CLIENT_ID = "468567581980-m094qe4jrgl9c1nt1ept8il9a6kqm6kk.apps.googleusercontent.com";
     const LICENSE_SERVER_URL = "https://script.google.com/macros/s/AKfycbwSNZNn4keEb9u889czH77xPyqz4yfraPSHPRsYpwVSFJwtDQjc1potUE1-C9wevLfs/exec";
 
     let tokenClient;
     let accessToken = "";
+    let userEmail = "";
 
     window.onload = function () {
-        google.accounts.id.initialize({
+        // Initialize token client for standard OAuth popup sign-in
+        tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,
-            callback: handleCredentialResponse
+            scope: 'email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
+            callback: async (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    accessToken = tokenResponse.access_token;
+                    await fetchUserEmailAndActivate();
+                }
+            },
         });
-        
-        // Render Google Sign-in button
-        google.accounts.id.renderButton(
-            document.getElementById("googleSignInBtn"),
-            { theme: "outline", size: "large", width: "100%" }
-        );
     };
 
-    async function handleCredentialResponse(response) {
+    function triggerGoogleSignIn() {
         const code = document.getElementById('licenseCodeInput').value.trim();
         if (!code) {
-            alert("Please enter your activation code before signing in with Google.");
+            alert("Please enter your activation code first.");
             return;
         }
+        // Request access token which also triggers the Google Sign-in popup flow
+        tokenClient.requestAccessToken({prompt: 'consent'});
+    }
 
-        // Decode Google JWT to get buyer's email safely on client side
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        const buyerEmail = JSON.parse(jsonPayload).email;
-
-        document.getElementById('activationStep').classList.add('hidden');
-        document.getElementById('statusLoader').classList.remove('hidden');
-
+    async function fetchUserEmailAndActivate() {
+        const code = document.getElementById('licenseCodeInput').value.trim();
+        
         try {
-            // 1. Verify and lock the license code on your Master Server
+            // Fetch the user's Google email profile using their new access token
+            const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const profile = await res.json();
+            userEmail = profile.email;
+
+            if (!userEmail) {
+                throw new Error("Could not retrieve email from Google profile.");
+            }
+
+            document.getElementById('activationStep').classList.add('hidden');
+            document.getElementById('statusLoader').classList.remove('hidden');
+
+            // 1. Verify and lock code on your Master Apps Script Server
             const verifyRes = await fetch(LICENSE_SERVER_URL, {
                 method: 'POST',
                 body: JSON.stringify({
                     action: "verifyAndActivate",
                     code: code,
-                    buyerEmail: buyerEmail
+                    buyerEmail: userEmail
                 })
             });
             const verifyData = await verifyRes.json();
@@ -121,32 +151,17 @@
                 return;
             }
 
-            // 2. Request Google Drive & Sheets OAuth access token to build their sheet
-            requestSheetsAccess(buyerEmail);
+            // 2. Create the buyer's private Google Sheet
+            await createBuyerGoogleSheet();
 
         } catch (err) {
-            alert("Connection error during activation: " + err);
+            alert("Activation error: " + err.message);
             location.reload();
         }
     }
 
-    function requestSheetsAccess(buyerEmail) {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
-            callback: async (tokenResponse) => {
-                if (tokenResponse && tokenResponse.access_token) {
-                    accessToken = tokenResponse.access_token;
-                    await createBuyerGoogleSheet(buyerEmail);
-                }
-            },
-        });
-        tokenClient.requestAccessToken({prompt: 'consent'});
-    }
-
-    async function createBuyerGoogleSheet(buyerEmail) {
+    async function createBuyerGoogleSheet() {
         try {
-            // Create a brand new Google Sheet in the buyer's personal Google Drive
             const createRes = await fetch('https://sheets.googleapis.com/spreadsheets/v4/spreadsheets', {
                 method: 'POST',
                 headers: {
@@ -169,7 +184,7 @@
             if (sheetData.spreadsheetId) {
                 alert("Success! Your private financial tracker has been created in your Google Drive.");
                 localStorage.setItem('buyer_sheet_id', sheetData.spreadsheetId);
-                localStorage.setItem('buyer_email', buyerEmail);
+                localStorage.setItem('buyer_email', userEmail);
                 document.getElementById('statusLoader').innerText = "Setup complete! Launching app...";
                 setTimeout(() => { location.reload(); }, 1500);
             } else {
