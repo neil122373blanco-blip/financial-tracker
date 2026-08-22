@@ -93,10 +93,9 @@ let accessToken = "";
 let userEmail = ""; 
 
 window.onload = function () {
-// Initialize token client for standard OAuth popup sign-in
 tokenClient = google.accounts.oauth2.initTokenClient({
 client_id: CLIENT_ID,
-scope: 'email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
+scope: 'email profile',
 callback: async (tokenResponse) => {
 if (tokenResponse && tokenResponse.access_token) {
 accessToken = tokenResponse.access_token;
@@ -112,7 +111,6 @@ if (!code) {
 alert("Please enter your activation code first.");
 return;
 }
-// Request access token which also triggers the Google Sign-in popup flow
 tokenClient.requestAccessToken({prompt: 'consent'});
 } 
 
@@ -120,7 +118,6 @@ async function fetchUserEmailAndActivate() {
 const code = document.getElementById('licenseCodeInput').value.trim(); 
 
 try {
-// Fetch the user's Google email profile using their new access token
 const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
 headers: { 'Authorization': `Bearer ${accessToken}` }
 });
@@ -134,7 +131,7 @@ throw new Error("Could not retrieve email from Google profile.");
 document.getElementById('activationStep').classList.add('hidden');
 document.getElementById('statusLoader').classList.remove('hidden'); 
 
-// 1. Verify and lock code on your Master Apps Script Server
+// Send activation request to Master Apps Script (which creates the sheet securely)
 const verifyRes = await fetch(LICENSE_SERVER_URL, {
 method: 'POST',
 body: JSON.stringify({
@@ -151,53 +148,15 @@ location.reload();
 return;
 } 
 
-// 2. Create the buyer's private Google Sheet
-await createBuyerGoogleSheet(); 
-
-} catch (err) {
-alert("Activation error: " + err.message);
-location.reload();
-}
-} 
-
-async function createBuyerGoogleSheet() {
-try {
-const createRes = await fetch('https://sheets.googleapis.com/spreadsheets/v4/spreadsheets', {
-method: 'POST',
-headers: {
-'Authorization': `Bearer ${accessToken}`,
-'Content-Type': 'application/json'
-},
-body: JSON.stringify({
-properties: { title: "Financial Tracker Database" },
-sheets: [
-{ properties: { title: "Sales" } },
-{ properties: { title: "Expenses" } },
-{ properties: { title: "Settings" } },
-{ properties: { title: "EmployeePins" } },
-{ properties: { title: "SystemConfig" } }
-]
-})
-});
-
-if (!createRes.ok) {
-const errText = await createRes.text();
-throw new Error(`Google API Error (${createRes.status}): ${errText}`);
-}
-
-const sheetData = await createRes.json(); 
-
-if (sheetData.spreadsheetId) {
-alert("Success! Your private financial tracker has been created in your Google Drive.");
-localStorage.setItem('buyer_sheet_id', sheetData.spreadsheetId);
+// Success! Save sheet ID and complete
+alert("Success! Your private financial tracker has been created.");
+localStorage.setItem('buyer_sheet_id', verifyData.spreadsheetId);
 localStorage.setItem('buyer_email', userEmail);
 document.getElementById('statusLoader').innerText = "Setup complete! Launching app...";
 setTimeout(() => { location.reload(); }, 1500);
-} else {
-throw new Error("Failed to initialize Google Sheet structure.");
-}
-} catch (error) {
-alert("Error creating Google Sheet: " + error.message);
+
+} catch (err) {
+alert("Activation error: " + err.message);
 location.reload();
 }
 }
