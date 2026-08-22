@@ -1,201 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Tracker - Activation</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        :root {
-            --bg-color: #FFFFFF;
-            --text-color: #18181B;
-            --accent-color: #4F46E5;
-            --border-color: #E4E4E7;
-            --card-bg: #FAFAFA;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            width: 100%;
-            max-width: 450px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        h1 { font-size: 1.4rem; margin-bottom: 8px; text-align: center; }
-        p { font-size: 0.9rem; color: #71717A; margin-bottom: 20px; text-align: center; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
-        input {
-            width: 100%; padding: 12px; border: 1px solid var(--border-color);
-            border-radius: 6px; font-size: 1rem; background: #FFFFFF; box-sizing: border-box;
-        }
-        .google-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #4285F4;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .google-btn:hover { background-color: #357ae8; }
-        .hidden { display: none !important; }
-        .loader { text-align: center; font-weight: 600; color: var(--accent-color); margin-top: 15px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Tracker - Activation</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+--bg-color: #FFFFFF;
+--text-color: #18181B;
+--accent-color: #4F46E5;
+--border-color: #E4E4E7;
+--card-bg: #FAFAFA;
+}
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+background-color: var(--bg-color);
+color: var(--text-color);
+padding: 20px;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+}
+.container {
+width: 100%;
+max-width: 450px;
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+padding: 30px;
+border-radius: 12px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+h1 { font-size: 1.4rem; margin-bottom: 8px; text-align: center; }
+p { font-size: 0.9rem; color: #71717A; margin-bottom: 20px; text-align: center; }
+.form-group { margin-bottom: 16px; }
+label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+input {
+width: 100%; padding: 12px; border: 1px solid var(--border-color);
+border-radius: 6px; font-size: 1rem; background: #FFFFFF; box-sizing: border-box;
+}
+.google-btn {
+width: 100%;
+padding: 12px;
+background-color: #4285F4;
+color: white;
+border: none;
+border-radius: 6px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+margin-top: 10px;
+}
+.google-btn:hover { background-color: #357ae8; }
+.hidden { display: none !important; }
+.loader { text-align: center; font-weight: 600; color: var(--accent-color); margin-top: 15px; }
+</style>
 </head>
-<body>
+<body> 
 
 <div class="container">
-    <h1>Activate Financial Tracker</h1>
-    <p>Enter your single-use code and sign in with Google to set up your private tracker.</p>
+<h1>Activate Financial Tracker</h1>
+<p>Enter your single-use code and sign in with Google to set up your private tracker.</p> 
 
-    <!-- ACTIVATION FORM -->
-    <div id="activationStep">
-        <div class="form-group">
-            <label>Activation Code</label>
-            <input type="text" id="licenseCodeInput" placeholder="e.g. TEST-1234-XYZ" required>
-        </div>
-        
-        <div class="form-group" style="margin-top: 24px;">
-            <button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
-                Sign in with Google & Activate
-            </button>
-        </div>
-    </div>
+<!-- ACTIVATION FORM -->
+<div id="activationStep">
+<div class="form-group">
+<label>Activation Code</label>
+<input type="text" id="licenseCodeInput" placeholder="e.g. TEST-1234-XYZ" required>
+</div> 
 
-    <div id="statusLoader" class="loader hidden">Setting up your private Google Sheet... Please wait.</div>
+<div class="form-group" style="margin-top: 24px;">
+<button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
+Sign in with Google & Activate
+</button>
 </div>
+</div> 
+
+<div id="statusLoader" class="loader hidden">Setting up your private Google Sheet... Please wait.</div>
+</div> 
 
 <script>
-    const CLIENT_ID = "468567581980-m094qe4jrgl9c1nt1ept8il9a6kqm6kk.apps.googleusercontent.com";
-    const LICENSE_SERVER_URL = "https://script.google.com/macros/s/AKfycbxRNXvlLLPLPhNzbj1JByRjYyQnBCSQXfHDzvo0V4cf0CIcx9MGRy71n09xeck-c4CVwQ/exec";
+const CLIENT_ID = "468567581980-m094qe4jrgl9c1nt1ept8il9a6kqm6kk.apps.googleusercontent.com";
+const LICENSE_SERVER_URL = "https://script.google.com/macros/s/AKfycbxRNXvlLLPLPhNzbj1JByRjYyQnBCSQXfHDzvo0V4cf0CIcx9MGRy71n09xeck-c4CVwQ/exec"; 
 
-    let tokenClient;
-    let accessToken = "";
-    let userEmail = "";
+let tokenClient;
+let accessToken = "";
+let userEmail = ""; 
 
-    window.onload = function () {
-        // Initialize token client for standard OAuth popup sign-in
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: 'email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
-            callback: async (tokenResponse) => {
-                if (tokenResponse && tokenResponse.access_token) {
-                    accessToken = tokenResponse.access_token;
-                    await fetchUserEmailAndActivate();
-                }
-            },
-        });
-    };
+window.onload = function () {
+// Initialize token client for standard OAuth popup sign-in
+tokenClient = google.accounts.oauth2.initTokenClient({
+client_id: CLIENT_ID,
+scope: 'email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
+callback: async (tokenResponse) => {
+if (tokenResponse && tokenResponse.access_token) {
+accessToken = tokenResponse.access_token;
+await fetchUserEmailAndActivate();
+}
+},
+});
+}; 
 
-    function triggerGoogleSignIn() {
-        const code = document.getElementById('licenseCodeInput').value.trim();
-        if (!code) {
-            alert("Please enter your activation code first.");
-            return;
-        }
-        // Request access token which also triggers the Google Sign-in popup flow
-        tokenClient.requestAccessToken({prompt: 'consent'});
-    }
+function triggerGoogleSignIn() {
+const code = document.getElementById('licenseCodeInput').value.trim();
+if (!code) {
+alert("Please enter your activation code first.");
+return;
+}
+// Request access token which also triggers the Google Sign-in popup flow
+tokenClient.requestAccessToken({prompt: 'consent'});
+} 
 
-    async function fetchUserEmailAndActivate() {
-        const code = document.getElementById('licenseCodeInput').value.trim();
-        
-        try {
-            // Fetch the user's Google email profile using their new access token
-            const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const profile = await res.json();
-            userEmail = profile.email;
+async function fetchUserEmailAndActivate() {
+const code = document.getElementById('licenseCodeInput').value.trim(); 
 
-            if (!userEmail) {
-                throw new Error("Could not retrieve email from Google profile.");
-            }
+try {
+// Fetch the user's Google email profile using their new access token
+const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+headers: { 'Authorization': `Bearer ${accessToken}` }
+});
+const profile = await res.json();
+userEmail = profile.email; 
 
-            document.getElementById('activationStep').classList.add('hidden');
-            document.getElementById('statusLoader').classList.remove('hidden');
+if (!userEmail) {
+throw new Error("Could not retrieve email from Google profile.");
+} 
 
-            // 1. Verify and lock code on your Master Apps Script Server
-            const verifyRes = await fetch(LICENSE_SERVER_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "verifyAndActivate",
-                    code: code,
-                    buyerEmail: userEmail
-                })
-            });
-            const verifyData = await verifyRes.json();
+document.getElementById('activationStep').classList.add('hidden');
+document.getElementById('statusLoader').classList.remove('hidden'); 
 
-            if (verifyData.status !== "success") {
-                alert("Activation Failed: " + verifyData.message);
-                location.reload();
-                return;
-            }
+// 1. Verify and lock code on your Master Apps Script Server
+const verifyRes = await fetch(LICENSE_SERVER_URL, {
+method: 'POST',
+body: JSON.stringify({
+action: "verifyAndActivate",
+code: code,
+buyerEmail: userEmail
+})
+});
+const verifyData = await verifyRes.json(); 
 
-            // 2. Create the buyer's private Google Sheet
-            await createBuyerGoogleSheet();
+if (verifyData.status !== "success") {
+alert("Activation Failed: " + verifyData.message);
+location.reload();
+return;
+} 
 
-        } catch (err) {
-            alert("Activation error: " + err.message);
-            location.reload();
-        }
-    }
+// 2. Create the buyer's private Google Sheet
+await createBuyerGoogleSheet(); 
 
-    async function createBuyerGoogleSheet() {
-        try {
-            const createRes = await fetch('https://sheets.googleapis.com/spreadsheets/v4/spreadsheets', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    properties: { title: "Financial Tracker Database" },
-                    sheets: [
-                        { properties: { title: "Sales" } },
-                        { properties: { title: "Expenses" } },
-                        { properties: { title: "Settings" } },
-                        { properties: { title: "EmployeePins" } },
-                        { properties: { title: "SystemConfig" } }
-                    ]
-                })
-            });
-            const sheetData = await createRes.json();
-            
-            if (sheetData.spreadsheetId) {
-                alert("Success! Your private financial tracker has been created in your Google Drive.");
-                localStorage.setItem('buyer_sheet_id', sheetData.spreadsheetId);
-                localStorage.setItem('buyer_email', userEmail);
-                document.getElementById('statusLoader').innerText = "Setup complete! Launching app...";
-                setTimeout(() => { location.reload(); }, 1500);
-            } else {
-                throw new Error("Failed to initialize Google Sheet structure.");
-            }
-        } catch (error) {
-            alert("Error creating Google Sheet: " + error.message);
-            location.reload();
-        }
-    }
-</script>
+} catch (err) {
+alert("Activation error: " + err.message);
+location.reload();
+}
+} 
+
+async function createBuyerGoogleSheet() {
+try {
+const createRes = await fetch('https://sheets.googleapis.com/spreadsheets/v4/spreadsheets', {
+method: 'POST',
+headers: {
+'Authorization': `Bearer ${accessToken}`,
+'Content-Type': 'application/json'
+},
+body: JSON.stringify({
+properties: { title: "Financial Tracker Database" },
+sheets: [
+{ properties: { title: "Sales" } },
+{ properties: { title: "Expenses" } },
+{ properties: { title: "Settings" } },
+{ properties: { title: "EmployeePins" } },
+{ properties: { title: "SystemConfig" } }
+]
+})
+});
+const sheetData = await createRes.json(); 
+
+if (sheetData.spreadsheetId) {
+alert("Success! Your private financial tracker has been created in your Google Drive.");
+localStorage.setItem('buyer_sheet_id', sheetData.spreadsheetId);
+localStorage.setItem('buyer_email', userEmail);
+document.getElementById('statusLoader').innerText = "Setup complete! Launching app...";
+setTimeout(() => { location.reload(); }, 1500);
+} else {
+throw new Error("Failed to initialize Google Sheet structure.");
+}
+} catch (error) {
+alert("Error creating Google Sheet: " + error.message);
+location.reload();
+}
+}
+</script> 
 
 </body>
 </html>
