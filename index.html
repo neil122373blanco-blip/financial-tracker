@@ -179,6 +179,12 @@ sheets: [
 ]
 })
 });
+
+if (!createRes.ok) {
+const errText = await createRes.text();
+throw new Error(`Google API Error (${createRes.status}): ${errText}`);
+}
+
 const sheetData = await createRes.json(); 
 
 if (sheetData.spreadsheetId) {
