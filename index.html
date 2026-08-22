@@ -1,306 +1,1003 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Financial Tracker - Secure Login</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>
-:root {
---bg-color: #FFFFFF;
---text-color: #18181B;
---accent-color: #4F46E5;
---border-color: #E4E4E7;
---card-bg: #FAFAFA;
-}
-body {
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-background-color: var(--bg-color);
-color: var(--text-color);
-padding: 20px;
-display: flex;
-justify-content: center;
-align-items: center;
-min-height: 100vh;
-box-sizing: border-box;
-}
-.container {
-width: 100%;
-max-width: 450px;
-background: var(--card-bg);
-border: 1px solid var(--border-color);
-padding: 30px;
-border-radius: 12px;
-box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-h1 { font-size: 1.4rem; margin-bottom: 8px; text-align: center; }
-p { font-size: 0.9rem; color: #71717A; margin-bottom: 20px; text-align: center; }
-.form-group { margin-bottom: 16px; }
-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
-input {
-width: 100%; padding: 12px; border: 1px solid var(--border-color);
-border-radius: 6px; font-size: 1rem; background: #FFFFFF; box-sizing: border-box;
-}
-.primary-btn, .google-btn {
-width: 100%;
-padding: 12px;
-color: white;
-border: none;
-border-radius: 6px;
-font-size: 1rem;
-font-weight: 600;
-cursor: pointer;
-margin-top: 10px;
-}
-.primary-btn { background-color: var(--accent-color); }
-.primary-btn:hover { background-color: #4338CA; }
-.google-btn { background-color: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
-.google-btn:hover { background-color: #357ae8; }
-.hidden { display: none !important; }
-.loader { text-align: center; font-weight: 600; color: var(--accent-color); margin-top: 15px; }
-.nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-.nav-tab { background: none; border: none; font-weight: 600; cursor: pointer; color: #71717A; padding: 6px 12px; }
-.nav-tab.active { color: var(--accent-color); border-bottom: 2px solid var(--accent-color); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Tracker for Business</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        :root {
+            --bg-color: #FFFFFF;
+            --text-color: #18181B;
+            --accent-color: #4F46E5;
+            --accent-hover: #4338CA;
+            --border-color: #E4E4E7;
+            --card-bg: #FAFAFA;
+            --danger-color: #EF4444;
+            --success-color: #10B981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .business-meta {
+            font-size: 0.75rem;
+            color: #71717A;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: var(--text-color);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #FFFFFF;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--accent-color);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .google-btn {
+            background-color: #4285F4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .google-btn:hover { background-color: #357ae8; }
+
+        .add-btn {
+            background-color: var(--success-color);
+            margin-bottom: 14px;
+        }
+        .add-btn:hover {
+            background-color: #059669;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            width: auto;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+        .delete-btn:hover {
+            background-color: #DC2626;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-top: 4px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .tab-switcher {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            background-color: #E4E4E7;
+            color: var(--text-color);
+            flex: 1;
+            padding: 8px;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: #FFFFFF;
+        }
+
+        .item-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .review-box {
+            background: #FFFFFF;
+            border: 1px dashed var(--accent-color);
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .review-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .review-total {
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            color: var(--accent-color);
+            font-size: 1.1rem;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #FFFFFF;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+    </style>
 </head>
-<body> 
+<body>
 
 <div class="container">
-    <!-- 1. ACTIVATION VIEW (First time only) -->
-    <div id="activationView" class="hidden">
-        <h1>Activate Financial Tracker</h1>
-        <p>Enter your single-use code and sign in with Google to set up your private tracker.</p> 
+    <header>
+        <h1 id="displayBizName">Financial Tracker</h1>
+        <div class="business-meta" id="displayBizMeta">Setting up system...</div>
+    </header>
+
+    <!-- LICENSE ACTIVATION SECTION (First-Time Gate) -->
+    <section id="activationSection" class="card hidden">
+        <h2>Activate Financial Tracker</h2>
+        <p style="font-size: 0.85rem; color: #71717A; margin-bottom: 14px;">Enter your single-use code and sign in with Google to set up your private tracker sheet.</p>
         <div class="form-group">
             <label>Activation Code</label>
             <input type="text" id="licenseCodeInput" placeholder="e.g. TEST-1111-XYZ" required>
-        </div> 
-        <div class="form-group" style="margin-top: 24px;">
-            <button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
-                Sign in with Google & Activate
-            </button>
         </div>
-        <div id="statusLoader" class="loader hidden">Setting up your private Google Sheet... Please wait.</div>
-    </div>
+        <button type="button" class="google-btn" onclick="triggerGoogleSignIn()">
+            Sign in with Google & Activate
+        </button>
+        <div id="statusLoader" class="hidden" style="text-align: center; font-weight: 600; color: var(--accent-color); margin-top: 15px;">Setting up your private Google Sheet... Please wait.</div>
+    </section>
 
-    <!-- 2. SETUP VIEW (First time after activation) -->
-    <div id="setupView" class="hidden">
-        <h1>App Configuration</h1>
-        <p>Set up your business credentials and management PIN.</p>
-        <div class="form-group">
-            <label>Business Name</label>
-            <input type="text" id="setupBizName" placeholder="My Business Name">
-        </div>
-        <div class="form-group">
-            <label>Business Address</label>
-            <input type="text" id="setupBizAddress" placeholder="Location">
-        </div>
-        <div class="form-group">
-            <label>Management PIN (4-Digits)</label>
-            <input type="password" id="setupPin" maxlength="4" placeholder="1234">
-        </div>
-        <button type="button" class="primary-btn" onclick="submitSetup()">Complete Setup</button>
-    </div>
+    <!-- SETUP SECTION -->
+    <section id="setupSection" class="card hidden">
+        <h2>App Installation & Setup</h2>
+        <form id="setupForm">
+            <div class="form-group">
+                <label>App Owner Email</label>
+                <input type="email" id="ownerEmail" placeholder="owner@gmail.com" required>
+            </div>
+            <div class="form-group">
+                <label>6-Digit Installation Code</label>
+                <input type="password" id="installCode" maxlength="6" placeholder="******" required>
+            </div>
+            <div class="form-group">
+                <label>Business Name</label>
+                <input type="text" id="bizName" placeholder="e.g. Neil's Barbers" required>
+            </div>
+            <div class="form-group">
+                <label>Business Address</label>
+                <input type="text" id="bizAddress" placeholder="e.g. Maddela, Quirino" required>
+            </div>
+            <div class="form-group">
+                <label>Set Management 4-Digit PIN</label>
+                <input type="password" id="setupMgmtPin" maxlength="4" placeholder="••••" required>
+            </div>
+            <button type="submit">Complete Installation</button>
+        </form>
+    </section>
 
-    <!-- 3. PIN LOGIN VIEW (Daily security) -->
-    <div id="loginView" class="hidden">
-        <h1>Secure Login</h1>
-        <p>Enter your Management or Employee PIN to continue.</p>
-        <div class="form-group">
-            <label>PIN Code</label>
-            <input type="password" id="loginPin" maxlength="4" placeholder="Enter PIN">
-        </div>
-        <button type="button" class="primary-btn" onclick="submitLogin()">Login to Dashboard</button>
-    </div>
+    <!-- LOGIN SECTION -->
+    <section id="loginSection" class="card hidden">
+        <h2>System Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Enter 4-Digit PIN (Management or Employee)</label>
+                <input type="password" id="loginPin" maxlength="4" placeholder="••••" required>
+            </div>
+            <button type="submit">Access Portal</button>
+        </form>
+    </section>
 
-    <!-- 4. MAIN APP DASHBOARD VIEW -->
-    <div id="dashboardView" class="hidden">
-        <h1 id="dashboardTitle">Financial Tracker</h1>
-        <p id="userRoleDisplay" style="font-size:0.8rem; margin-bottom:15px; color:#4F46E5; font-weight:600;"></p>
+    <!-- MAIN PORTAL SECTION -->
+    <section id="appPortalSection" class="hidden">
         
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('sale')">Log Sale</button>
-            <button class="nav-tab" onclick="switchTab('expense')">Log Expense</button>
+        <div id="managementDashboard" class="hidden">
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div style="font-size: 0.8rem; color: #71717A;">Today's Sales</div>
+                    <div class="metric-value" id="valSalesToday">₱0.00</div>
+                </div>
+                <div class="metric-box">
+                    <div style="font-size: 0.8rem; color: #71717A;">Today's Expenses</div>
+                    <div class="metric-value" id="valExpToday">₱0.00</div>
+                </div>
+            </div>
         </div>
 
-        <!-- SALE FORM -->
-        <div id="saleTab">
-            <div class="form-group">
-                <label>Client Name</label>
-                <input type="text" id="clientName" placeholder="Client or customer name">
-            </div>
-            <div class="form-group">
-                <label>Items / Particulars</label>
-                <input type="text" id="saleItems" placeholder="Product or service description">
-            </div>
-            <div class="form-group">
-                <label>Total Amount</label>
-                <input type="number" id="saleAmount" placeholder="0.00">
-            </div>
-            <button type="button" class="primary-btn" onclick="submitSale()">Save Sale Entry</button>
+        <div class="tab-switcher" id="portalSwitcher">
+            <button class="tab-btn active" onclick="switchPortalTab('sales')">Sales Entry</button>
+            <button class="tab-btn" id="btnExpTab" onclick="switchPortalTab('expenses')">Expenses</button>
+            <button class="tab-btn" id="btnSettingsTab" onclick="switchPortalTab('settings')">Settings</button>
         </div>
 
-        <!-- EXPENSE FORM -->
-        <div id="expenseTab" class="hidden">
-            <div class="form-group">
-                <label>Provider / Vendor</label>
-                <input type="text" id="expProvider" placeholder="Supplier name">
+        <div id="successCard" class="card hidden" style="text-align: center;">
+            <h2 style="color: var(--accent-color);">Entry Recorded Successfully!</h2>
+            <p style="font-size: 0.9rem; margin-bottom: 20px; color: #71717A;">The transaction has been saved to your Google Sheet.</p>
+            <button onclick="returnToPortals()">Back to Portals</button>
+        </div>
+
+        <!-- SALES FORM -->
+        <div id="salesCard" class="card">
+            <h2>Record New Sale</h2>
+            
+            <div class="review-box">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">CUSTOMER REVIEW DISPLAY</div>
+                <div id="reviewItemsList">
+                    <div class="review-row"><span>(No services added)</span><span>₱0.00</span></div>
+                </div>
+                <div class="review-total">
+                    <span>Total Amount to Pay</span>
+                    <span id="reviewTotalDisplay">₱0.00</span>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Expense Items</label>
-                <input type="text" id="expItem" placeholder="What was purchased?">
+
+            <form id="salesForm">
+                <div class="form-group">
+                    <label>Client Name</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label>Sales Invoice Number</label>
+                    <input type="text" id="salesInvoiceNo">
+                </div>
+
+                <label>Itemized Charges (Services / Goods)</label>
+                <div id="itemsContainer"></div>
+                <button type="button" class="add-btn" onclick="addItemRow()">+ Add Another Service or Item</button>
+
+                <div class="form-group">
+                    <label>Mode of Payment</label>
+                    <select id="salesPaymentMethod" required>
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="salesPaymentStatus" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Particulars</label>
+                    <input type="text" id="salesParticulars">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="salesNote" rows="2"></textarea>
+                </div>
+                <button type="submit">Submit Sale Entry</button>
+            </form>
+        </div>
+
+        <!-- EXPENSES FORM -->
+        <div id="expensesCard" class="card hidden">
+            <h2>Record New Expense</h2>
+            
+            <div class="review-box">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #71717A; margin-bottom: 6px;">EXPENSE REVIEW</div>
+                <div id="reviewExpensesList">
+                    <div class="review-row"><span>(No expenses added)</span><span>₱0.00</span></div>
+                </div>
+                <div class="review-total">
+                    <span>Total Expense Amount</span>
+                    <span id="reviewExpTotalDisplay">₱0.00</span>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Amount</label>
-                <input type="number" id="expAmount" placeholder="0.00">
-            </div>
-            <button type="button" class="primary-btn" onclick="submitExpense()">Save Expense Entry</button>
+
+            <form id="expensesForm">
+                <div class="form-group">
+                    <label>Provider / Supplier</label>
+                    <input type="text" id="expProvider" placeholder="e.g. Electric Coop, Supplier Name" required>
+                </div>
+
+                <label>Itemized Expense Charges</label>
+                <div id="expItemsContainer"></div>
+                <button type="button" class="add-btn" onclick="addExpenseRow()">+ Add Another Expense Item</button>
+
+                <div class="form-group" style="margin-top: 14px;">
+                    <label>Payment Method</label>
+                    <select id="expPaymentMethod" required>
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="expPaymentStatus" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Particulars</label>
+                    <input type="text" id="expParticulars">
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <textarea id="expNote" rows="2"></textarea>
+                </div>
+                <button type="submit">Submit Expense Entry</button>
+            </form>
+        </div>
+
+        <!-- SETTINGS / MANAGEMENT PANEL -->
+        <div id="settingsCard" class="card hidden">
+            <h2>Item & Employee Management</h2>
+            
+            <form id="addItemForm" style="margin-bottom: 24px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                <label>New Service / Item Name</label>
+                <div class="form-group">
+                    <input type="text" id="newItemName" placeholder="e.g. Haircut, Shave" required>
+                </div>
+                <button type="submit">Add Item to Dropdown</button>
+            </form>
+
+            <h3>Add Employee Passcode (Max 50)</h3>
+            <form id="addPinForm" style="margin-top: 10px;">
+                <div class="form-group">
+                    <label>Employee Name</label>
+                    <input type="text" id="empName" placeholder="e.g. John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>4-Digit Passcode</label>
+                    <input type="password" id="empPin" maxlength="4" placeholder="••••" required>
+                </div>
+                <button type="submit">Register Employee Passcode</button>
+            </form>
+            <div id="employeeListDisplay" style="margin-top: 14px; font-size: 0.85rem; color: #71717A;"></div>
+        </div>
+
+    </section>
+</div>
+
+<!-- SUBMISSION CONFIRMATION MODAL -->
+<div id="pinConfirmModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Confirm Submission</h3>
+        <p style="font-size: 0.85rem; color: #71717A; margin: 10px 0;">Please enter your passcode to confirm this entry:</p>
+        <input type="password" id="confirmPinInput" maxlength="4" placeholder="••••" style="margin-bottom: 14px;">
+        <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="executeVerifiedSubmit()" style="background: var(--success-color);">Confirm & Submit</button>
+            <button type="button" onclick="closePinModal()" style="background: var(--danger-color);">Cancel</button>
         </div>
     </div>
-</div> 
+</div>
 
 <script>
-const CLIENT_ID = "468567581980-m094qe4jrgl9c1nt1ept8il9a6kqm6kk.apps.googleusercontent.com";
-const LICENSE_SERVER_URL = "https://script.google.com/macros/s/AKfycbxRNXvlLLPLPhNzbj1JByRjYyQnBCSQXfHDzvo0V4cf0CIcx9MGRy71n09xeck-c4CVwQ/exec"; 
+    const CLIENT_ID = "468567581980-m094qe4jrgl9c1nt1ept8il9a6kqm6kk.apps.googleusercontent.com";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxRNXvlLLPLPhNzbj1JByRjYyQnBCSQXfHDzvo0V4cf0CIcx9MGRy71n09xeck-c4CVwQ/exec";
 
-let tokenClient;
-let accessToken = "";
-let userEmail = ""; 
-let currentAuthToken = "";
+    let tokenClient;
+    let accessToken = "";
+    let userEmail = "";
+    let sessionToken = "";
+    let currentUserRole = "";
+    let currentUserName = "";
+    let availableDropdownItems = [];
+    let pendingSubmitPayload = null;
+    let pendingSubmitType = "";
 
-window.onload = function () {
-    const savedSheetId = localStorage.getItem('buyer_sheet_id');
-    const isSetupDone = localStorage.getItem('is_setup_done');
+    window.onload = function () {
+        const savedSheetId = localStorage.getItem('buyer_sheet_id');
+        const savedBiz = localStorage.getItem('tracker_biz_name');
 
-    if (!savedSheetId) {
-        // Step 1: Needs Activation
-        document.getElementById('activationView').classList.remove('hidden');
-    } else if (!isSetupDone) {
-        // Step 2: Needs First-Time Configuration
-        document.getElementById('setupView').classList.remove('hidden');
-    } else {
-        // Step 3: Normal Daily PIN Login
-        document.getElementById('loginView').classList.remove('hidden');
-    }
+        if (!savedSheetId) {
+            // Step 1: Needs Activation Gate
+            document.getElementById('activationSection').classList.remove('hidden');
+        } else if (!savedBiz) {
+            // Step 2: Activated, but needs Setup
+            document.getElementById('setupSection').classList.remove('hidden');
+        } else {
+            // Step 3: Regular PIN Login
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('displayBizName').innerText = savedBiz;
+            document.getElementById('displayBizMeta').innerText = localStorage.getItem('tracker_biz_addr') || '';
+        }
 
-    tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: 'email profile',
-        callback: async (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                accessToken = tokenResponse.access_token;
-                await fetchUserEmailAndActivate();
-            }
-        },
-    });
-}; 
+        addItemRow();
+        addExpenseRow();
 
-function triggerGoogleSignIn() {
-    const code = document.getElementById('licenseCodeInput').value.trim();
-    if (!code) {
-        alert("Please enter your activation code first.");
-        return;
-    }
-    tokenClient.requestAccessToken({prompt: 'consent'});
-} 
-
-async function fetchUserEmailAndActivate() {
-    const code = document.getElementById('licenseCodeInput').value.trim(); 
-    try {
-        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { 'Authorization': `Bearer ${accessToken}` }
+        // Initialize Google OAuth Token Client for activation
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: 'email profile',
+            callback: async (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    accessToken = tokenResponse.access_token;
+                    await fetchUserEmailAndActivate();
+                }
+            },
         });
-        const profile = await res.json();
-        userEmail = profile.email; 
+    };
 
-        if (!userEmail) throw new Error("Could not retrieve email."); 
-
-        document.getElementById('activationView').classList.add('hidden');
-        document.getElementById('statusLoader').classList.remove('hidden'); 
-
-        const verifyRes = await fetch(LICENSE_SERVER_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "verifyAndActivate",
-                code: code,
-                buyerEmail: userEmail
-            })
-        });
-        const verifyData = await verifyRes.json(); 
-
-        if (verifyData.status !== "success") {
-            alert("Activation Failed: " + verifyData.message);
-            location.reload();
+    function triggerGoogleSignIn() {
+        const code = document.getElementById('licenseCodeInput').value.trim();
+        if (!code) {
+            alert("Please enter your activation code first.");
             return;
-        } 
+        }
+        tokenClient.requestAccessToken({prompt: 'consent'});
+    }
 
-        // Store sheet ID and prompt setup
-        localStorage.setItem('buyer_sheet_id', verifyData.spreadsheetId);
-        localStorage.setItem('buyer_email', userEmail);
+    async function fetchUserEmailAndActivate() {
+        const code = document.getElementById('licenseCodeInput').value.trim();
+        try {
+            const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const profile = await res.json();
+            userEmail = profile.email;
+
+            if (!userEmail) throw new Error("Could not retrieve email from Google profile.");
+
+            document.getElementById('activationSection').classList.add('hidden');
+            document.getElementById('statusLoader').classList.remove('hidden');
+
+            const verifyRes = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "verifyAndActivate",
+                    code: code,
+                    buyerEmail: userEmail
+                })
+            });
+            const verifyData = await verifyRes.json();
+
+            if (verifyData.status !== "success") {
+                alert("Activation Failed: " + verifyData.message);
+                location.reload();
+                return;
+            }
+
+            localStorage.setItem('buyer_sheet_id', verifyData.spreadsheetId);
+            localStorage.setItem('buyer_email', userEmail);
+
+            document.getElementById('statusLoader').classList.add('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
+            alert("Activation successful! Please complete your business setup.");
+        } catch (err) {
+            alert("Activation error: " + err.message);
+            location.reload();
+        }
+    }
+
+    document.getElementById('setupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            action: "setup",
+            spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+            ownerEmail: document.getElementById('ownerEmail').value.trim(),
+            installCode: document.getElementById('installCode').value.trim(),
+            bizName: document.getElementById('bizName').value.trim(),
+            bizAddress: document.getElementById('bizAddress').value.trim(),
+            managementPin: document.getElementById('setupMgmtPin').value.trim()
+        };
+
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status === "success") {
+            localStorage.setItem('tracker_biz_name', payload.bizName);
+            localStorage.setItem('tracker_biz_addr', payload.bizAddress);
+            document.getElementById('displayBizName').innerText = payload.bizName;
+            document.getElementById('displayBizMeta').innerText = payload.bizAddress;
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            alert("Setup complete! You can now log in with your management PIN.");
+        } else {
+            alert("Setup error: " + data.message);
+        }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pin = document.getElementById('loginPin').value.trim();
+        try {
+            const response = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: "login", 
+                    spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                    pin: pin 
+                }) 
+            });
+            const result = await response.json();
+
+            if (result.status === "success") {
+                sessionToken = result.token;
+                currentUserRole = result.role;
+                currentUserName = result.name;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('appPortalSection').classList.remove('hidden');
+
+                if (currentUserRole === "MANAGEMENT") {
+                    document.getElementById('managementDashboard').classList.remove('hidden');
+                    document.getElementById('btnSettingsTab').classList.remove('hidden');
+                    fetchMetrics();
+                    loadEmployeePins();
+                } else {
+                    document.getElementById('managementDashboard').classList.add('hidden');
+                    document.getElementById('btnSettingsTab').classList.add('hidden');
+                }
+                loadDropdownItems();
+            } else {
+                alert("Login Failed: " + result.message);
+            }
+        } catch (err) {
+            alert("Network error connecting to backend: " + err);
+        }
+    });
+
+    async function loadDropdownItems() {
+        try {
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: "getItems",
+                    spreadsheetId: localStorage.getItem('buyer_sheet_id')
+                }) 
+            });
+            const data = await res.json();
+            if (data.status === "success" && data.items) {
+                availableDropdownItems = data.items;
+                updateAllItemDropdowns();
+            }
+        } catch (e) {
+            console.error("Could not load items", e);
+        }
+    }
+
+    async function loadEmployeePins() {
+        try {
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: "getEmployeePins", 
+                    spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                    token: sessionToken 
+                }) 
+            });
+            const data = await res.json();
+            if (data.status === "success" && data.pins) {
+                const display = document.getElementById('employeeListDisplay');
+                display.innerHTML = `<strong>Registered Employees (${data.pins.length}/50):</strong> ` + 
+                    data.pins.map(p => `${p.name} (PIN: ••••)`).join(", ");
+            }
+        } catch (e) {
+            console.error("Could not load employee pins", e);
+        }
+    }
+
+    function updateAllItemDropdowns() {
+        const selects = document.querySelectorAll('.item-select');
+        selects.forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">Select Service/Item</option>';
+            availableDropdownItems.forEach(item => {
+                if (item) {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.textContent = item;
+                    if (item === currentVal) opt.selected = true;
+                    select.appendChild(opt);
+                }
+            });
+        });
+    }
+
+    function addItemRow() {
+        const container = document.getElementById('itemsContainer');
+        const rowId = Date.now();
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'item-row';
+        rowDiv.id = `row-${rowId}`;
+
+        let optionsHtml = '<option value="">Select Service/Item</option>';
+        availableDropdownItems.forEach(item => {
+            if (item) optionsHtml += `<option value="${item}">${item}</option>`;
+        });
+
+        rowDiv.innerHTML = `
+            <select class="item-select" style="flex: 2;" required onchange="updateCustomerReview()">${optionsHtml}</select>
+            <input type="number" step="0.01" class="item-price" placeholder="Price (₱)" style="flex: 1;" required oninput="updateCustomerReview()">
+            <button type="button" class="delete-btn" onclick="removeItemRow('${rowId}')">X</button>
+        `;
+        container.appendChild(rowDiv);
+        updateCustomerReview();
+    }
+
+    function removeItemRow(rowId) {
+        const row = document.getElementById(`row-${rowId}`);
+        if (document.querySelectorAll('#itemsContainer .item-row').length > 1) {
+            row.remove();
+            updateCustomerReview();
+        } else {
+            alert("You must keep at least one service item.");
+        }
+    }
+
+    function updateCustomerReview() {
+        const rows = document.querySelectorAll('#itemsContainer .item-row');
+        const reviewList = document.getElementById('reviewItemsList');
+        reviewList.innerHTML = "";
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const select = row.querySelector('.item-select');
+            const priceInput = row.querySelector('.item-price');
+            const itemName = select.value ? select.value : "(Not selected)";
+            const priceVal = Number(priceInput.value) || 0;
+            grandTotal += priceVal;
+
+            const div = document.createElement('div');
+            div.className = 'review-row';
+            div.innerHTML = `<span>${itemName}</span><span>₱${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`;
+            reviewList.appendChild(div);
+        });
+
+        document.getElementById('reviewTotalDisplay').innerText = "₱" + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+
+    function addExpenseRow() {
+        const container = document.getElementById('expItemsContainer');
+        const rowId = Date.now();
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'item-row';
+        rowDiv.id = `exp-row-${rowId}`;
+
+        rowDiv.innerHTML = `
+            <input type="text" class="exp-item-desc" placeholder="Item/Service Description" style="flex: 2;" required oninput="updateExpenseReview()">
+            <input type="number" step="0.01" class="exp-item-price" placeholder="Price (₱)" style="flex: 1;" required oninput="updateExpenseReview()">
+            <button type="button" class="delete-btn" onclick="removeExpenseRow('${rowId}')">X</button>
+        `;
+        container.appendChild(rowDiv);
+        updateExpenseReview();
+    }
+
+    function removeExpenseRow(rowId) {
+        const row = document.getElementById(`exp-row-${rowId}`);
+        if (document.querySelectorAll('#expItemsContainer .item-row').length > 1) {
+            row.remove();
+            updateExpenseReview();
+        } else {
+            alert("You must keep at least one expense item.");
+        }
+    }
+
+    function updateExpenseReview() {
+        const rows = document.querySelectorAll('#expItemsContainer .item-row');
+        const reviewList = document.getElementById('reviewExpensesList');
+        reviewList.innerHTML = "";
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const descInput = row.querySelector('.exp-item-desc');
+            const priceInput = row.querySelector('.exp-item-price');
+            const descName = descInput.value ? descInput.value : "(Not specified)";
+            const priceVal = Number(priceInput.value) || 0;
+            grandTotal += priceVal;
+
+            const div = document.createElement('div');
+            div.className = 'review-row';
+            div.innerHTML = `<span>${descName}</span><span>₱${priceVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>`;
+            reviewList.appendChild(div);
+        });
+
+        document.getElementById('reviewExpTotalDisplay').innerText = "₱" + grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
+
+    function switchPortalTab(tab) {
+        document.getElementById('successCard').classList.add('hidden');
+        document.getElementById('salesCard').classList.add('hidden');
+        document.getElementById('expensesCard').classList.add('hidden');
+        document.getElementById('settingsCard').classList.add('hidden');
+
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+        if (tab === 'sales') {
+            document.getElementById('salesCard').classList.remove('hidden');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        } else if (tab === 'expenses') {
+            document.getElementById('expensesCard').classList.remove('hidden');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            if (document.querySelectorAll('#expItemsContainer .item-row').length === 0) {
+                addExpenseRow();
+            }
+        } else if (tab === 'settings' && currentUserRole === "MANAGEMENT") {
+            document.getElementById('settingsCard').classList.remove('hidden');
+            document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        }
+    }
+
+    function returnToPortals() {
+        document.getElementById('successCard').classList.add('hidden');
+        document.getElementById('salesForm').reset();
+        document.getElementById('itemsContainer').innerHTML = "";
+        addItemRow();
+        switchPortalTab('sales');
+    }
+
+    document.getElementById('salesForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const rows = document.querySelectorAll('#itemsContainer .item-row');
+        let itemizedDescriptions = [];
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const itemName = row.querySelector('.item-select').value;
+            const price = Number(row.querySelector('.item-price').value) || 0;
+            itemizedDescriptions.push(`${itemName} (₱${price})`);
+            grandTotal += price;
+        });
+
+        pendingSubmitPayload = {
+            action: "submitSale",
+            spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+            user: currentUserName,
+            clientName: document.getElementById('clientName').value,
+            items: itemizedDescriptions.join(", "),
+            totalAmount: grandTotal,
+            modeOfPayment: document.getElementById('salesPaymentMethod').value,
+            paymentStatus: document.getElementById('salesPaymentStatus').value,
+            salesInvoiceNo: document.getElementById('salesInvoiceNo').value,
+            particulars: document.getElementById('salesParticulars').value,
+            note: document.getElementById('salesNote').value
+        };
+        pendingSubmitType = "sale";
+        openPinModal();
+    });
+
+    document.getElementById('expensesForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const rows = document.querySelectorAll('#expItemsContainer .item-row');
+        let itemizedDescriptions = [];
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const desc = row.querySelector('.exp-item-desc').value;
+            const price = Number(row.querySelector('.exp-item-price').value) || 0;
+            itemizedDescriptions.push(`${desc} (₱${price})`);
+            grandTotal += price;
+        });
+
+        pendingSubmitPayload = {
+            action: "submitExpense",
+            spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+            user: currentUserName,
+            expProvider: document.getElementById('expProvider').value,
+            expItem: itemizedDescriptions.join(", "),
+            expAmount: grandTotal,
+            expPaymentMethod: document.getElementById('expPaymentMethod').value,
+            expPaymentStatus: document.getElementById('expPaymentStatus').value,
+            expParticulars: document.getElementById('expParticulars').value,
+            expNote: document.getElementById('expNote').value
+        };
+        pendingSubmitType = "expense";
+        openPinModal();
+    });
+
+    function openPinModal() {
+        document.getElementById('confirmPinInput').value = "";
+        document.getElementById('pinConfirmModal').classList.remove('hidden');
+    }
+
+    function closePinModal() {
+        document.getElementById('pinConfirmModal').classList.add('hidden');
+        pendingSubmitPayload = null;
+    }
+
+    async function executeVerifiedSubmit() {
+        const pin = document.getElementById('confirmPinInput').value.trim();
+        if (!pin) {
+            alert("Please enter your passcode to confirm.");
+            return;
+        }
+
+        const authRes = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "login", 
+                spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                pin: pin 
+            }) 
+        });
+        const authData = await authRes.json();
+
+        if (authData.status !== "success") {
+            alert("Invalid passcode! Submission canceled.");
+            return;
+        }
+
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(pendingSubmitPayload) });
+        const data = await res.json();
         
-        document.getElementById('statusLoader').classList.add('hidden');
-        document.getElementById('setupView').classList.remove('hidden');
+        closePinModal();
 
-    } catch (err) {
-        alert("Activation error: " + err.message);
-        location.reload();
-    }
-}
-
-async function submitSetup() {
-    const bizName = document.getElementById('setupBizName').value.trim();
-    const bizAddress = document.getElementById('setupBizAddress').value.trim();
-    const managementPin = document.getElementById('setupPin').value.trim();
-
-    if (!bizName || !managementPin) {
-        alert("Please fill in your Business Name and Management PIN.");
-        return;
-    }
-
-    localStorage.setItem('is_setup_done', 'true');
-    alert("Configuration saved successfully!");
-    document.getElementById('setupView').classList.add('hidden');
-    document.getElementById('loginView').classList.remove('hidden');
-}
-
-async function submitLogin() {
-    const pin = document.getElementById('loginPin').value.trim();
-    if (!pin) {
-        alert("Please enter your PIN.");
-        return;
+        if (data.status === "success") {
+            if (pendingSubmitType === "sale") {
+                document.getElementById('salesForm').reset();
+                document.getElementById('itemsContainer').innerHTML = "";
+                addItemRow();
+                document.getElementById('salesCard').classList.add('hidden');
+            } else {
+                document.getElementById('expensesForm').reset();
+                document.getElementById('expItemsContainer').innerHTML = "";
+                addExpenseRow();
+                document.getElementById('expensesCard').classList.add('hidden');
+            }
+            document.getElementById('successCard').classList.remove('hidden');
+            if (currentUserRole === "MANAGEMENT") fetchMetrics();
+        } else {
+            alert("Error: " + data.message);
+        }
     }
 
-    // Default fallback or custom pin check
-    if (pin === "1234") {
-        document.getElementById('loginView').classList.add('hidden');
-        document.getElementById('dashboardView').classList.remove('hidden');
-        document.getElementById('userRoleDisplay').innerText = "Logged in as: Management";
-    } else {
-        alert("Invalid PIN. (Try default: 1234)");
+    document.getElementById('addItemForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newItem = document.getElementById('newItemName').value.trim();
+        const res = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "addItem", 
+                spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                token: sessionToken, 
+                item: newItem 
+            }) 
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+            alert("Item added successfully!");
+            document.getElementById('newItemName').value = "";
+            loadDropdownItems();
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+
+    document.getElementById('addPinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('empName').value.trim();
+        const pin = document.getElementById('empPin').value.trim();
+        const res = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "addEmployeePin", 
+                spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                token: sessionToken, 
+                pin: pin, 
+                name: name 
+            }) 
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+            alert("Employee passcode registered successfully!");
+            document.getElementById('empName').value = "";
+            document.getElementById('empPin').value = "";
+            loadEmployeePins();
+        } else {
+            alert("Error: " + data.message);
+        }
+    });
+
+    async function fetchMetrics() {
+        if (currentUserRole !== "MANAGEMENT") return;
+        const response = await fetch(API_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "getMetrics", 
+                spreadsheetId: localStorage.getItem('buyer_sheet_id'),
+                token: sessionToken 
+            }) 
+        });
+        const res = await response.json();
+        if (res.status === "success") {
+            document.getElementById('valSalesToday').innerText = "₱" + Number(res.salesToday).toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('valExpToday').innerText = "₱" + Number(res.expensesToday).toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
     }
-}
-
-function switchTab(tab) {
-    if (tab === 'sale') {
-        document.getElementById('saleTab').classList.remove('hidden');
-        document.getElementById('expenseTab').classList.add('hidden');
-        document.querySelectorAll('.nav-tab')[0].classList.add('active');
-        document.querySelectorAll('.nav-tab')[1].classList.remove('active');
-    } else {
-        document.getElementById('saleTab').classList.add('hidden');
-        document.getElementById('expenseTab').classList.remove('hidden');
-        document.querySelectorAll('.nav-tab')[0].classList.remove('active');
-        document.querySelectorAll('.nav-tab')[1].classList.add('active');
-    }
-}
-
-function submitSale() {
-    alert("Sale recorded successfully!");
-}
-
-function submitExpense() {
-    alert("Expense recorded successfully!");
-}
-</script> 
-
+</script>
 </body>
 </html>
